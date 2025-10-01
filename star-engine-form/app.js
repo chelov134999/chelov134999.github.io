@@ -510,17 +510,8 @@ form.addEventListener('submit', async (event) => {
     });
   }
 
-  if (webhookSuccess && liffReady) {
-    try {
-      await liff.sendMessages([
-        { type: 'text', text: '✅資料已送出，我正在生成初檢結果，稍後會推送摘要給您。' },
-      ]);
-      if (liffInClient && liff.closeWindow) {
-        setTimeout(() => liff.closeWindow(), 1800);
-      }
-    } catch (error) {
-      console.warn('[LIFF] sendMessages 失敗：', error);
-    }
+  if (webhookSuccess && liffReady && liffInClient && liff.closeWindow) {
+    setTimeout(() => liff.closeWindow(), 1800);
   }
 
   setLoading(false);
