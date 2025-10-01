@@ -6,6 +6,7 @@ const copyButton = document.getElementById('copy-button');
 
 let liffReady = false;
 let liffId = new URLSearchParams(window.location.search).get('liffId') || window.LIFF_ID || '';
+let cachedUserId = '';
 
 async function initLiff() {
   if (!window.liff || !liffId) {
@@ -17,6 +18,9 @@ async function initLiff() {
       liff.login();
       return;
     }
+    const context = liff.getContext();
+    const decoded = liff.getDecodedIDToken?.();
+    cachedUserId = context?.userId || decoded?.sub || '';
     liffReady = true;
   } catch (error) {
     console.warn('[LIFF] 初始化失敗：', error);
@@ -40,6 +44,42 @@ function showResult(payload, message) {
   resultJson.textContent = JSON.stringify(payload, null, 2);
 }
 
+async function postToN8n(payload, userId) {
+  if (!userId) return false;
+  try {
+    const body = {
+      destination: userId,
+      events: [
+        {
+          type: 'message',
+          message: {
+            type: 'text',
+            text: JSON.stringify(payload),
+          },
+          timestamp: Date.now(),
+          source: { type: 'user', userId },
+          replyToken: '',
+          mode: 'active',
+        },
+      ],
+    };
+    const resp = await fetch('https://chelov134999.app.n8n.cloud/webhook/lead-entry', {
+      method: 'POST',
+      mode: 'cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!resp.ok) {
+      console.warn('[n8n] webhook 回應非 2xx', resp.status, await resp.text());
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('[n8n] webhook 呼叫失敗', error);
+    return false;
+  }
+}
+
 copyButton.addEventListener('click', async () => {
   try {
     await navigator.clipboard.writeText(resultJson.textContent);
@@ -60,23 +100,30 @@ form.addEventListener('submit', async (event) => {
     return;
   }
 
-  try {
-    if (liffReady) {
-      await liff.sendMessages([
-        {
-          type: 'text',
-          text: JSON.stringify(payload),
-        },
-      ]);
-      showResult(payload, '資料已傳送至星級引擎，請返回 LINE 查看診斷。');
-      setTimeout(() => liff.closeWindow(), 1200);
-    } else {
-      showResult(payload, '目前未在 LIFF 中執行，請手動複製資料送回聊天。');
+  let success = false;
+
+  if (liffReady && cachedUserId) {
+    success = await postToN8n(payload, cachedUserId);
+    if (success) {
+      try {
+        await liff.sendMessages([
+          { type: 'text', text: '✅資料已送出，我正在生成初檢結果，請稍候查看。' },
+        ]);
+      } catch (error) {
+        console.warn('sendMessages 失敗：', error);
+      }
+      showResult(payload, '資料已送交星級引擎，視窗可關閉，稍候會在 LINE 收到診斷。');
+      setTimeout(() => liff.closeWindow(), 1500);
+      return;
     }
-  } catch (error) {
-    console.error('送出失敗：', error);
-    showResult(payload, '傳送至星級引擎時發生問題，請稍後再試或改為複製下方資料。');
   }
+
+  showResult(
+    payload,
+    success
+      ? '資料已送出，但無法確認 LINE 使用者 ID，請稍候回到 LINE 確認。'
+      : '目前無法直接傳送，請複製下列資料貼回 LINE 對話框。'
+  );
 });
 
 initLiff();
