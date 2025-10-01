@@ -49,12 +49,17 @@
     <section id="result" class="result" hidden>
       <h2>已送出！</h2>
       <p id="result-message">資料已傳送給星級引擎。</p>
+      <div id="status-line" class="result__status" hidden>
+        <span id="webhook-status" class="status-badge"></span>
+      </div>
+      <div id="report-card" class="report-card" hidden></div>
       <pre id="result-json"></pre>
       <button id="copy-button" class="result__copy">複製資料</button>
     </section>
   </main>
 
   <script src="https://static.line-scdn.net/liff/edge/versions/2.21.2/sdk.js"></script>
+  <script src="config.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
