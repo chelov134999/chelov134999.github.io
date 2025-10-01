@@ -28,18 +28,18 @@ body {
 }
 
 .page {
-  width: min(480px, 100%);
+  width: min(360px, 92vw);
   display: grid;
-  gap: 20px;
+  gap: 16px;
 }
 
 .card {
   background: var(--card-bg);
   box-shadow: var(--card-shadow);
   border-radius: var(--border-radius);
-  padding: 28px 28px 24px;
+  padding: 24px 22px 20px;
   display: grid;
-  gap: 24px;
+  gap: 20px;
 }
 
 .card__header {
@@ -117,7 +117,7 @@ body {
 }
 
 .card__footer {
-  padding: 16px;
+  padding: 14px;
   border-radius: 16px;
   background: var(--secondary);
   color: var(--primary-dark);
