@@ -57,6 +57,7 @@
         <div>
           <h2>評論燃點</h2>
           <p class="card__subtitle">近 7 天的高危評論與智能草稿</p>
+          <p class="card__note" id="reviews-summary"></p>
         </div>
       </div>
       <div id="reviews-list" class="review-list"></div>
@@ -111,42 +112,22 @@
 
     <section class="cta">
       <div class="cta__badge">剩餘守護席次 <span id="seat-counter">8</span>｜智能體即時更新</div>
-      <div class="cta__grid">
-        <article class="cta-card cta-card--primary">
-          <header class="cta-card__header">
-            <span class="cta-card__icon">🚨</span>
-            <div>
-              <p class="cta-card__title">星級警報・當天版</p>
-              <p class="cta-card__price"><s>NT$9,800</s> 限時 $4,980</p>
-            </div>
-          </header>
-          <ul class="cta-card__list">
-            <li>營業時段每 10 分鐘智能偵測 1~3★ 評論</li>
-            <li>觸發後 15 分鐘推送安撫 / 補救 / 禮貌 3 版草稿</li>
-            <li>每日戰情、每週報告、每月策略全自動交付</li>
+      <div class="cta__panel">
+        <div class="cta__copy">
+          <h2>下一步：把危機變成亮點</h2>
+          <p id="cta-headline">完整衝擊力報表已準備就緒，內含危機指標、競品差距與補救腳本。</p>
+          <ul class="cta__list">
+            <li>查看帶 token 的完整報表，掌握落後幅度與補救優先序</li>
+            <li>了解「智能守護」如何在 15 分鐘內交付行動藍圖與回覆草稿</li>
           </ul>
-          <button id="cta-primary" class="btn btn--primary">查看詳細報表</button>
-        </article>
-        <article class="cta-card cta-card--secondary">
-          <header class="cta-card__header">
-            <span class="cta-card__icon">📈</span>
-            <div>
-              <p class="cta-card__title">智能守護方案</p>
-              <p class="cta-card__price"><s>NT$5,980</s> 限時 $2,980</p>
-            </div>
-          </header>
-          <ul class="cta-card__list">
-            <li>每週一次巡檢 + 草稿包，30 分鐘整理所有待辦</li>
-            <li>自選競品月報，掌握領先者策略與落差</li>
-            <li>智能體全程陪跑，0 人工作業阻力</li>
-          </ul>
-          <div class="cta-card__actions">
-            <button id="cta-secondary" class="btn btn--white">了解智能守護</button>
-            <button id="cta-home" class="btn btn--outline">回主頁測試</button>
-          </div>
-        </article>
+        </div>
+        <div class="cta__actions">
+          <button id="cta-primary" class="btn btn--accent">查看詳細報表</button>
+          <button id="cta-secondary" class="btn btn--blue">了解智能守護</button>
+          <button id="cta-home" class="btn btn--outline">回主頁測試</button>
+        </div>
       </div>
-      <p class="cta__footer">付款後 15 分鐘交付完整診斷、行動清單與追蹤指標。</p>
+      <p class="cta__footer">若要重新檢測其他門市，只要回到表單再輸入一次店名與地址即可。</p>
     </section>
 
     <footer class="footnote">

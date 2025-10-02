@@ -26,6 +26,7 @@ const els = {
   statNegative: document.getElementById('stat-negative'),
   statLoss: document.getElementById('stat-loss'),
   reviewsList: document.getElementById('reviews-list'),
+  reviewsSummary: document.getElementById('reviews-summary'),
   competitorPrimary: document.getElementById('competitor-primary'),
   competitorTable: document.getElementById('competitor-table'),
   competitorDetails: document.getElementById('competitor-details'),
@@ -39,10 +40,16 @@ const els = {
   ctaPrimary: document.getElementById('cta-primary'),
   ctaSecondary: document.getElementById('cta-secondary'),
   ctaHome: document.getElementById('cta-home'),
+  ctaHeadline: document.getElementById('cta-headline'),
   backToForm: document.getElementById('back-to-form'),
 };
 
 const sanitize = (text) => (text || '').toString().replace(/\s+/g, ' ').trim();
+const truncate = (text, length = 28) => {
+  const value = sanitize(text);
+  if (!value) return '';
+  return value.length > length ? `${value.slice(0, length)}…` : value;
+};
 
 function showToast(message) {
   if (!els.toast) return;
@@ -77,7 +84,7 @@ function renderList(target, items) {
   target.innerHTML = '';
   (items || []).forEach((text) => {
     const li = document.createElement('li');
-    li.textContent = text;
+    li.textContent = sanitize(text);
     target.appendChild(li);
   });
   if (!target.childElementCount) {
@@ -100,13 +107,19 @@ function renderReviews(replyDrafts = []) {
   replyDrafts.forEach((item, index) => {
     const card = document.createElement('article');
     card.className = 'review-card';
+    const tag = sanitize(item.tag || `危機點 #${index + 1}`);
+    const ratingValue = item.rating != null ? (item.rating.toFixed ? item.rating.toFixed(1) : item.rating) : null;
+    const ratingLabel = ratingValue != null ? `${ratingValue} ★` : '低評';
+    const relativeTime = sanitize(item.relativeTime || '近期');
+    const reviewText = sanitize(item.text) || '（評論內容為空）';
+    const author = sanitize(item.author || '匿名');
     card.innerHTML = `
       <div class="review-card__topline">
-        <span class="review-card__tag">${item.tag || `危機點 #${index + 1}`}</span>
-        <span class="review-card__meta">${item.rating != null ? `${item.rating.toFixed ? item.rating.toFixed(1) : item.rating} ★` : '低評'} · ${sanitize(item.relativeTime || '近期')}</span>
+        <span class="review-card__tag">${tag}</span>
+        <span class="review-card__meta">${ratingLabel} · ${relativeTime}</span>
       </div>
-      <p class="review-card__text">${sanitize(item.text) || '（評論內容為空）'}</p>
-      <p class="review-card__meta">${sanitize(item.author || '匿名')} · 智能草稿準備就緒</p>
+      <p class="review-card__text">${reviewText}</p>
+      <p class="review-card__meta">${author} · 智能草稿準備就緒</p>
     `;
     const actions = document.createElement('div');
     actions.className = 'review-card__actions';
@@ -119,6 +132,57 @@ function renderReviews(replyDrafts = []) {
     card.appendChild(actions);
     els.reviewsList.appendChild(card);
   });
+}
+
+function renderReviewSummary(report = {}) {
+  if (!els.reviewsSummary) return;
+  const summary = report.primary?.recentSummary || {};
+  const rawNegative = summary.negativeRecent;
+  const negative = typeof rawNegative === 'number' && !Number.isNaN(rawNegative) ? rawNegative : 0;
+  const focus = sanitize(report.analysis?.focusCategory || '');
+  const snippets = Array.isArray(summary.snippets) ? summary.snippets : [];
+
+  if (!negative) {
+    els.reviewsSummary.textContent = '近 7 天尚無新的低評，請持續保持目前節奏。';
+    return;
+  }
+
+  const sampleSnippets = snippets
+    .slice(0, 2)
+    .map((item) => truncate(item.text, 26))
+    .filter(Boolean);
+
+  let message = `近 7 天有 ${negative} 則低評`;
+  if (focus) {
+    message += `，多集中在「${focus}」`;
+  }
+  if (sampleSnippets.length === 1) {
+    message += `，包含「${sampleSnippets[0]}」`;
+  } else if (sampleSnippets.length >= 2) {
+    message += `，包含「${sampleSnippets[0]}」與「${sampleSnippets[1]}」`;
+  }
+  message += '。';
+  els.reviewsSummary.textContent = message;
+}
+
+function updateCtaHeadline({ storeName, rating, diffRating, negative }) {
+  if (!els.ctaHeadline) return;
+  const parts = [];
+  if (typeof rating === 'number' && !Number.isNaN(rating)) {
+    parts.push(`${storeName} 目前 ${rating.toFixed(1)} ★`);
+  }
+  if (typeof diffRating === 'number' && !Number.isNaN(diffRating) && diffRating > 0) {
+    parts.push(`落後商圈 ${diffRating.toFixed(1)} ★`);
+  }
+  if (typeof negative === 'number' && negative > 0) {
+    parts.push(`近 7 天 ${negative} 則低評`);
+  }
+
+  const headline = parts.length
+    ? `${parts.join('、')}，完整報表已列出補救優先序與策略建議。`
+    : '完整衝擊力報表已列出補救優先序與策略建議。';
+
+  els.ctaHeadline.textContent = headline;
 }
 
 function renderCompetitors(report = {}) {
@@ -181,46 +245,61 @@ function renderRadar(external) {
 
 function renderStats(report) {
   const metrics = report.metrics || {};
-  if (els.heroRating) els.heroRating.textContent = `${typeof metrics.rating === 'number' ? metrics.rating.toFixed(1) : '--'} ★`;
-  if (els.heroAvg) els.heroAvg.textContent = `${typeof metrics.competitorAvg === 'number' ? metrics.competitorAvg.toFixed(1) : '--'} ★`;
-
-  const diffRating = typeof metrics.competitorAvg === 'number' && typeof metrics.rating === 'number'
-    ? (metrics.competitorAvg - metrics.rating).toFixed(1)
+  const rating = typeof metrics.rating === 'number' && !Number.isNaN(metrics.rating) ? metrics.rating : null;
+  const competitorAvg = typeof metrics.competitorAvg === 'number' && !Number.isNaN(metrics.competitorAvg)
+    ? metrics.competitorAvg
     : null;
+  const diffRating = rating != null && competitorAvg != null ? competitorAvg - rating : null;
+  const rawNegative = metrics.negativeRecent != null ? metrics.negativeRecent : report.primary?.recentSummary?.negativeRecent;
+  const negative = typeof rawNegative === 'number' && !Number.isNaN(rawNegative) ? rawNegative : null;
+  const revenueLoss = typeof metrics.revenueLoss === 'number' && !Number.isNaN(metrics.revenueLoss)
+    ? metrics.revenueLoss
+    : null;
+
+  if (els.heroRating) {
+    els.heroRating.textContent = rating != null ? `${rating.toFixed(1)} ★` : '-- ★';
+  }
+  if (els.heroAvg) {
+    els.heroAvg.textContent = competitorAvg != null ? `${competitorAvg.toFixed(1)} ★` : '-- ★';
+  }
+
   if (els.heroGap) {
-    if (diffRating !== null && !Number.isNaN(Number(diffRating))) {
-      const val = Number(diffRating);
-      els.heroGap.textContent = val > 0 ? `${val.toFixed(1)} ★ 落後` : `${Math.abs(val).toFixed(1)} ★ 領先`;
+    if (diffRating != null) {
+      const value = Number(diffRating.toFixed(1));
+      els.heroGap.textContent = value > 0 ? `${value.toFixed(1)} ★ 落後` : `${Math.abs(value).toFixed(1)} ★ 領先`;
     } else {
       els.heroGap.textContent = '--';
     }
   }
+
   if (els.heroLoss) {
-    if (typeof metrics.revenueLoss === 'number') {
-      els.heroLoss.textContent = `NT$${metrics.revenueLoss.toLocaleString('zh-TW')}`;
-    } else {
-      els.heroLoss.textContent = '--';
-    }
+    els.heroLoss.textContent = revenueLoss != null ? `NT$${revenueLoss.toLocaleString('zh-TW')}` : '--';
   }
+
   if (els.statRating) {
-    if (diffRating !== null && !Number.isNaN(diffRating)) {
-      const sign = Number(diffRating) > 0 ? `落後 ${diffRating} ★` : `領先 ${Math.abs(Number(diffRating)).toFixed(1)} ★`;
-      els.statRating.textContent = sign;
+    if (diffRating != null) {
+      const value = Number(diffRating.toFixed(1));
+      els.statRating.textContent = value > 0 ? `落後 ${value.toFixed(1)} ★` : `領先 ${Math.abs(value).toFixed(1)} ★`;
     } else {
       els.statRating.textContent = '尚無差距資料';
     }
   }
+
   if (els.statNegative) {
-    const negative = metrics.negativeRecent != null ? metrics.negativeRecent : report.primary?.recentSummary?.negativeRecent;
     els.statNegative.textContent = `${negative != null ? negative : '--'} 則`;
   }
+
   if (els.statLoss) {
-    if (typeof metrics.revenueLoss === 'number') {
-      els.statLoss.textContent = `NT$${metrics.revenueLoss.toLocaleString('zh-TW')}`;
-    } else {
-      els.statLoss.textContent = '—';
-    }
+    els.statLoss.textContent = revenueLoss != null ? `NT$${revenueLoss.toLocaleString('zh-TW')}` : '—';
   }
+
+  return {
+    rating,
+    competitorAvg,
+    diffRating: diffRating != null ? diffRating : null,
+    negative: negative != null ? negative : 0,
+    revenueLoss,
+  };
 }
 
 function renderReport(report) {
@@ -228,16 +307,45 @@ function renderReport(report) {
   const storeName = sanitize(hero.storeName) || '您的門市';
   if (els.heroStore) els.heroStore.textContent = storeName;
   if (els.heroStoreInline) els.heroStoreInline.textContent = storeName;
-  if (els.heroDanger) els.heroDanger.textContent = sanitize(hero.dangerLabel) || '智能體完成初檢，建議立即展開守護流程。';
+  const metricsSummary = renderStats(report);
+  const focusCategory = sanitize(report.analysis?.focusCategory || '');
+  const snippets = Array.isArray(report.primary?.recentSummary?.snippets)
+    ? report.primary.recentSummary.snippets
+    : [];
+  const sampleSnippet = snippets.find((item) => sanitize(item?.text))?.text;
+  const sampleSnippetText = sampleSnippet ? truncate(sampleSnippet, 32) : '';
+  let dangerText = sanitize(hero.dangerLabel) || '智能體完成初檢，建議立即展開守護流程。';
 
-  renderStats(report);
+  if (metricsSummary.negative >= 3 && focusCategory) {
+    dangerText = sampleSnippetText
+      ? `近三則低評集中在「${focusCategory}」，最新留言：「${sampleSnippetText}」。`
+      : `近三則低評集中在「${focusCategory}」，請立即回覆並調整現場流程。`;
+  } else if (metricsSummary.negative >= 1 && focusCategory) {
+    dangerText = `近 7 天有 ${metricsSummary.negative} 則低評提到「${focusCategory}」，建議優先補救。`;
+  } else if (metricsSummary.diffRating != null && metricsSummary.diffRating > 0.3) {
+    dangerText = `目前落後商圈 ${metricsSummary.diffRating.toFixed(1)} ★，需要快速回覆低評並累積好評。`;
+  } else if (metricsSummary.negative >= 1 && sampleSnippetText) {
+    dangerText = `最新低評：「${sampleSnippetText}」，建議立即啟動補救草稿。`;
+  }
+
+  if (els.heroDanger) {
+    els.heroDanger.textContent = dangerText;
+  }
+
   renderReviews(report.primary?.replyDrafts || []);
+  renderReviewSummary(report);
   renderCompetitors(report);
   renderList(els.planToday, report.actionPlan?.today || []);
   renderList(els.planWeek, report.actionPlan?.week || []);
   renderList(els.planMonth, report.actionPlan?.month || []);
   renderRadar(report.externalInsights);
   startSeatTicker(report.allocation);
+  updateCtaHeadline({
+    storeName,
+    rating: metricsSummary.rating,
+    diffRating: metricsSummary.diffRating,
+    negative: metricsSummary.negative,
+  });
 }
 
 async function fetchReport() {
