@@ -1,38 +1,27 @@
-const params = new URLSearchParams(window.location.search);
 const config = window.STAR_ENGINE_CONFIG || {};
-
-const webhookUrl = config.webhookUrl || 'https://chelov134999.app.n8n.cloud/webhook/lead-entry';
-const liffId = config.formLiffId || config.liffId || '';
 const reportEndpoint = config.reportEndpoint || 'https://chelov134999.app.n8n.cloud/webhook/report-data';
-const reportUrl = config.reportUrl || config.report_url || '';
+const checkoutPrimaryUrl = config.checkoutPrimaryUrl || config.checkout_primary_url || '';
+const checkoutSecondaryUrl = config.checkoutSecondaryUrl || config.checkout_secondary_url || '';
 const formUrl = config.formUrl || config.form_url || 'https://liff.line.me/2008215846-5LwXlWVN?view=form';
-const checkoutPrimaryUrl = config.checkoutPrimaryUrl || config.checkout_primary_url || config.checkoutSecondaryUrl || config.checkout_secondary_url || '';
-const checkoutSecondaryUrl = config.checkoutSecondaryUrl || config.checkout_secondary_url || checkoutPrimaryUrl;
+const reportLiffId = config.reportLiffId || config.liffId || '';
 
 const state = {
-  mode: params.get('view') === 'report' && params.get('token') ? 'report' : 'form',
-  token: params.get('token') || '',
+  token: new URLSearchParams(window.location.search).get('token') || '',
   liffReady: false,
   liffInClient: false,
-  userId: '',
   seatTimer: null,
+  seatBase: 8,
+  seatLow: 7,
 };
 
 const els = {
-  formView: document.getElementById('form-view'),
-  form: document.getElementById('lead-form'),
-  submitBtn: document.querySelector('button[type="submit"]'),
-  resultSection: document.getElementById('result'),
-  resultMessage: document.getElementById('result-message'),
-  statusLine: document.getElementById('status-line'),
-  statusBadge: document.getElementById('webhook-status'),
-  resultJson: document.getElementById('result-json'),
-  copyBtn: document.getElementById('copy-button'),
-  reportView: document.getElementById('report-view'),
   heroStore: document.getElementById('hero-store'),
+  heroStoreInline: document.getElementById('hero-store-inline'),
   heroDanger: document.getElementById('hero-danger'),
   heroRating: document.getElementById('hero-rating'),
   heroAvg: document.getElementById('hero-avg'),
+  heroGap: document.getElementById('hero-gap'),
+  heroLoss: document.getElementById('hero-loss'),
   statRating: document.getElementById('stat-rating'),
   statNegative: document.getElementById('stat-negative'),
   statLoss: document.getElementById('stat-loss'),
@@ -46,142 +35,40 @@ const els = {
   radarSection: document.getElementById('section-radar'),
   radarList: document.getElementById('radar-list'),
   seatCounter: document.getElementById('seat-counter'),
+  toast: document.getElementById('toast'),
   ctaPrimary: document.getElementById('cta-primary'),
   ctaSecondary: document.getElementById('cta-secondary'),
   ctaHome: document.getElementById('cta-home'),
-  backHome: document.getElementById('back-home'),
   backToForm: document.getElementById('back-to-form'),
-  toast: document.getElementById('toast'),
 };
 
-const trim = (value) => (value || '').toString().trim();
-const sanitize = (text) => (text || '').toString().trim();
-
-function show(section) {
-  if (els.formView) els.formView.hidden = section !== 'form';
-  if (els.resultSection) els.resultSection.hidden = section !== 'result';
-  if (els.reportView) els.reportView.hidden = section !== 'report';
-}
-
-function toggleLoading(loading) {
-  if (!els.submitBtn) return;
-  els.submitBtn.disabled = loading;
-  els.submitBtn.textContent = loading ? '分析中…' : '送出並分析';
-}
+const sanitize = (text) => (text || '').toString().replace(/\s+/g, ' ').trim();
 
 function showToast(message) {
   if (!els.toast) return;
   els.toast.textContent = message;
   els.toast.hidden = false;
-  setTimeout(() => { els.toast.hidden = true; }, 2200);
+  setTimeout(() => {
+    els.toast.hidden = true;
+  }, 2200);
 }
 
-async function initLiff() {
-  if (!window.liff || !liffId) return;
+async function copyDraft(draft) {
+  if (!draft) {
+    showToast('草稿無內容');
+    return;
+  }
   try {
-    await liff.init({ liffId });
-    await liff.ready;
-    if (!liff.isLoggedIn()) {
-      liff.login({ scope: ['profile', 'openid'] });
+    if (state.liffReady && state.liffInClient) {
+      await liff.sendMessages([{ type: 'text', text: draft }]);
+      showToast('草稿已送到聊天視窗');
       return;
     }
-    state.liffReady = true;
-    state.liffInClient = liff.isInClient?.() ?? false;
-    try {
-      const profile = await liff.getProfile();
-      state.userId = profile?.userId || liff.getContext?.()?.userId || '';
-    } catch (error) {
-      console.warn('[LIFF] getProfile failed', error);
-    }
-  } catch (error) {
-    console.warn('[LIFF] init failed', error);
-  }
-}
-
-async function handleFormSubmit(event) {
-  event.preventDefault();
-  if (!els.form) return;
-  const formData = new FormData(els.form);
-  const payload = {
-    city: trim(formData.get('city')),
-    route: trim(formData.get('route')),
-    number: trim(formData.get('number')),
-    name: trim(formData.get('name')),
-    submittedAt: new Date().toISOString(),
-  };
-
-  if (!payload.city || !payload.route || !payload.number || !payload.name) {
-    els.resultMessage.textContent = '請完整填寫資訊。';
-    show('result');
-    return;
-  }
-
-  try {
-    toggleLoading(true);
-    show('result');
-    if (els.statusLine) {
-      els.statusLine.hidden = false;
-      els.statusBadge.textContent = '分析中…';
-      els.statusBadge.classList.remove('status-badge--warn');
-    }
-
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        events: [
-          {
-            replyToken: '',
-            type: 'message',
-            timestamp: Date.now(),
-            source: { type: 'user', userId: state.userId || 'anonymous' },
-            message: { type: 'text', text: `${payload.city}${payload.route}${payload.number} ${payload.name}` },
-          },
-        ],
-      }),
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`${response.status} ${text}`);
-    }
-
-    els.resultMessage.textContent = '資料傳送成功，請回到 LINE 點擊「衝擊力報表」。';
-    els.resultJson.textContent = JSON.stringify(payload, null, 2);
-    els.statusBadge.textContent = '已送出';
-  } catch (error) {
-    els.resultMessage.textContent = `送出失敗：${error.message}`;
-    if (els.statusBadge) {
-      els.statusBadge.textContent = '失敗';
-      els.statusBadge.classList.add('status-badge--warn');
-    }
-  } finally {
-    toggleLoading(false);
-  }
-}
-
-function copyDraft(draft) {
-  const text = draft || '您好，我們已收到您的意見，會立即處理。';
-  if (state.liffReady && state.liffInClient) {
-    liff.sendMessages([{ type: 'text', text }]).then(
-      () => showToast('草稿已送到聊天室'),
-      (error) => {
-        console.warn('[LIFF] sendMessages failed', error);
-        fallbackCopy(text);
-      }
-    );
-    return;
-  }
-  fallbackCopy(text);
-}
-
-async function fallbackCopy(text) {
-  try {
-    await navigator.clipboard.writeText(text);
+    await navigator.clipboard.writeText(draft);
     showToast('草稿已複製');
   } catch (error) {
-    console.warn('[Clipboard] failed', error);
-    alert(`請手動複製以下內容:\n${text}`);
+    console.warn('[copyDraft]', error);
+    showToast('複製失敗，請手動複製');
   }
 }
 
@@ -205,8 +92,8 @@ function renderReviews(replyDrafts = []) {
   els.reviewsList.innerHTML = '';
   if (!replyDrafts.length) {
     const empty = document.createElement('p');
-    empty.textContent = '近期沒有 1~3★ 評論，維持目前節奏即可。';
-    empty.style.color = 'rgba(15, 23, 42, 0.6)';
+    empty.textContent = '近期沒有 1~3★ 評論，保持追蹤以維持好評。';
+    empty.style.color = 'rgba(15,23,42,0.6)';
     els.reviewsList.appendChild(empty);
     return;
   }
@@ -214,24 +101,27 @@ function renderReviews(replyDrafts = []) {
     const card = document.createElement('article');
     card.className = 'review-card';
     card.innerHTML = `
-      <span class="review-card__tag">${item.tag || `危機點 #${index + 1}`}</span>
-      <p class="review-card__text">${sanitize(item.text) || '（無評論文字）'}</p>
-      <p class="review-card__meta">${item.rating != null ? `${item.rating.toFixed ? item.rating.toFixed(1) : item.rating} ★` : '低評'} · ${sanitize(item.relativeTime || '近期')} · ${sanitize(item.author || '匿名')}</p>
+      <div class="review-card__topline">
+        <span class="review-card__tag">${item.tag || `危機點 #${index + 1}`}</span>
+        <span class="review-card__meta">${item.rating != null ? `${item.rating.toFixed ? item.rating.toFixed(1) : item.rating} ★` : '低評'} · ${sanitize(item.relativeTime || '近期')}</span>
+      </div>
+      <p class="review-card__text">${sanitize(item.text) || '（評論內容為空）'}</p>
+      <p class="review-card__meta">${sanitize(item.author || '匿名')} · 智能草稿準備就緒</p>
     `;
     const actions = document.createElement('div');
     actions.className = 'review-card__actions';
-    const btn = document.createElement('button');
-    btn.className = 'btn btn--ghost-light';
-    btn.type = 'button';
-    btn.textContent = '✂️ 複製草稿';
-    btn.addEventListener('click', () => copyDraft(item.replyDraft));
-    actions.appendChild(btn);
+    const button = document.createElement('button');
+    button.className = 'btn btn--ghost-light';
+    button.type = 'button';
+    button.innerHTML = '✂️ 一鍵複製草稿';
+    button.addEventListener('click', () => copyDraft(item.replyDraft));
+    actions.appendChild(button);
     card.appendChild(actions);
     els.reviewsList.appendChild(card);
   });
 }
 
-function renderCompetitors(report) {
+function renderCompetitors(report = {}) {
   if (!els.competitorPrimary) return;
   const insight = report.insight || {};
   const top = insight.topCompetitor || {};
@@ -257,15 +147,17 @@ function renderCompetitors(report) {
 }
 
 function startSeatTicker(allocation = {}) {
-  if (!els.seatCounter) return;
   const base = Number(allocation.remaining) || 8;
-  const alt = Math.max(1, Number(allocation.today) || base - 1);
+  const lower = Math.max(1, Number(allocation.today) || Math.max(1, base - 1));
+  state.seatBase = base;
+  state.seatLow = lower;
+  if (!els.seatCounter) return;
   els.seatCounter.textContent = base;
   if (state.seatTimer) clearInterval(state.seatTimer);
   let toggle = false;
   state.seatTimer = setInterval(() => {
     toggle = !toggle;
-    els.seatCounter.textContent = toggle ? alt : base;
+    els.seatCounter.textContent = toggle ? lower : base;
   }, 6000);
 }
 
@@ -290,15 +182,30 @@ function renderRadar(external) {
 function renderStats(report) {
   const metrics = report.metrics || {};
   if (els.heroRating) els.heroRating.textContent = `${typeof metrics.rating === 'number' ? metrics.rating.toFixed(1) : '--'} ★`;
-  if (els.heroAvg) els.heroAvg.textContent = `商圈平均 ${typeof metrics.competitorAvg === 'number' ? metrics.competitorAvg.toFixed(1) : '--'} ★`;
+  if (els.heroAvg) els.heroAvg.textContent = `${typeof metrics.competitorAvg === 'number' ? metrics.competitorAvg.toFixed(1) : '--'} ★`;
 
   const diffRating = typeof metrics.competitorAvg === 'number' && typeof metrics.rating === 'number'
     ? (metrics.competitorAvg - metrics.rating).toFixed(1)
     : null;
-  if (els.statRating) {
+  if (els.heroGap) {
     if (diffRating !== null && !Number.isNaN(Number(diffRating))) {
       const val = Number(diffRating);
-      els.statRating.textContent = val > 0 ? `落後 ${diffRating} ★` : `領先 ${Math.abs(val).toFixed(1)} ★`;
+      els.heroGap.textContent = val > 0 ? `${val.toFixed(1)} ★ 落後` : `${Math.abs(val).toFixed(1)} ★ 領先`;
+    } else {
+      els.heroGap.textContent = '--';
+    }
+  }
+  if (els.heroLoss) {
+    if (typeof metrics.revenueLoss === 'number') {
+      els.heroLoss.textContent = `NT$${metrics.revenueLoss.toLocaleString('zh-TW')}`;
+    } else {
+      els.heroLoss.textContent = '--';
+    }
+  }
+  if (els.statRating) {
+    if (diffRating !== null && !Number.isNaN(diffRating)) {
+      const sign = Number(diffRating) > 0 ? `落後 ${diffRating} ★` : `領先 ${Math.abs(Number(diffRating)).toFixed(1)} ★`;
+      els.statRating.textContent = sign;
     } else {
       els.statRating.textContent = '尚無差距資料';
     }
@@ -317,9 +224,10 @@ function renderStats(report) {
 }
 
 function renderReport(report) {
-  if (!els.reportView) return;
   const hero = report.hero || {};
-  if (els.heroStore) els.heroStore.textContent = sanitize(hero.storeName) || '您的門市';
+  const storeName = sanitize(hero.storeName) || '您的門市';
+  if (els.heroStore) els.heroStore.textContent = storeName;
+  if (els.heroStoreInline) els.heroStoreInline.textContent = storeName;
   if (els.heroDanger) els.heroDanger.textContent = sanitize(hero.dangerLabel) || '智能體完成初檢，建議立即展開守護流程。';
 
   renderStats(report);
@@ -332,14 +240,14 @@ function renderReport(report) {
   startSeatTicker(report.allocation);
 }
 
-async function loadReport() {
+async function fetchReport() {
   if (!state.token) {
-    show('report');
-    if (els.heroDanger) els.heroDanger.textContent = 'token 無效，請回 LINE 聊天視窗重新開啟報表。';
+    if (els.heroDanger) {
+      els.heroDanger.textContent = 'token 無效，請回到 LINE 聊天視窗重新開啟報表。';
+    }
     return;
   }
   try {
-    show('report');
     const response = await fetch(`${reportEndpoint}?token=${encodeURIComponent(state.token)}`, {
       method: 'GET',
       headers: { 'Cache-Control': 'no-store' },
@@ -353,11 +261,27 @@ async function loadReport() {
     }
     renderReport(payload.report || {});
   } catch (error) {
-    console.warn('[loadReport]', error);
+    console.warn('[fetchReport]', error);
     if (els.heroDanger) {
       els.heroDanger.textContent = `無法載入診斷資料：${error.message}`;
     }
   }
+}
+
+async function initLiff() {
+  if (!window.liff || !reportLiffId) {
+    await fetchReport();
+    return;
+  }
+  try {
+    await liff.init({ liffId: reportLiffId });
+    await liff.ready;
+    state.liffReady = true;
+    state.liffInClient = liff.isInClient?.() ?? false;
+  } catch (error) {
+    console.warn('[LIFF] init failed', error);
+  }
+  await fetchReport();
 }
 
 function openUrl(url, { appendToken = false } = {}) {
@@ -365,54 +289,31 @@ function openUrl(url, { appendToken = false } = {}) {
     showToast('尚未設定連結');
     return;
   }
-  const finalUrl = appendToken && state.token
+  const target = appendToken && state.token
     ? `${url}${url.includes('?') ? '&' : '?'}token=${encodeURIComponent(state.token)}`
     : url;
   if (state.liffReady && state.liffInClient) {
-    liff.openWindow({ url: finalUrl, external: false });
+    liff.openWindow({ url: target, external: false });
   } else {
-    window.open(finalUrl, '_blank');
+    window.open(target, '_blank');
   }
 }
 
 function attachListeners() {
-  if (els.form) {
-    els.form.addEventListener('submit', handleFormSubmit);
-  }
-  if (els.copyBtn) {
-    els.copyBtn.addEventListener('click', async () => {
-      try {
-        await navigator.clipboard.writeText(els.resultJson.textContent || '');
-        els.copyBtn.textContent = '已複製';
-        setTimeout(() => (els.copyBtn.textContent = '複製送出的資料'), 1800);
-      } catch (error) {
-        console.warn('[clipboard] failed', error);
-      }
-    });
-  }
-}
-
-function attachReportHandlers() {
   if (els.ctaPrimary) {
     els.ctaPrimary.addEventListener('click', () => {
-      const target = reportUrl || window.location.href;
+      const target = config.reportUrl || window.location.href;
       openUrl(target, { appendToken: true });
     });
   }
   if (els.ctaSecondary) {
     els.ctaSecondary.addEventListener('click', () => {
-      openUrl(checkoutPrimaryUrl || checkoutSecondaryUrl);
+      openUrl(checkoutPrimaryUrl || checkoutSecondaryUrl, { appendToken: false });
     });
   }
   if (els.ctaHome) {
     els.ctaHome.addEventListener('click', () => {
       openUrl(formUrl);
-    });
-  }
-  if (els.backHome) {
-    els.backHome.addEventListener('click', (event) => {
-      event.preventDefault();
-      show('form');
     });
   }
   if (els.backToForm) {
@@ -423,13 +324,12 @@ function attachReportHandlers() {
   }
 }
 
-(async function bootstrap() {
+(function bootstrap() {
   attachListeners();
-  attachReportHandlers();
-  await initLiff();
-  if (state.mode === 'report') {
-    await loadReport();
-  } else {
-    show('form');
+  if (!state.token) {
+    if (els.heroDanger) {
+      els.heroDanger.textContent = '連線逾時或缺少驗證，請回到 LINE 聊天視窗重新開啟報表。';
+    }
   }
+  initLiff();
 })();

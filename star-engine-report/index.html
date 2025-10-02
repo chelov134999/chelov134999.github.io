@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>星級引擎｜衝擊力報表</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="page" id="app">
+    <header class="hero">
+      <div class="hero__main">
+        <span class="hero__label">專屬報表</span>
+        <h1 class="hero__store" id="hero-store">您的門市</h1>
+        <p class="hero__subtitle">為 <span id="hero-store-inline">您的門市</span> 即刻生成的危機診斷</p>
+        <p id="hero-danger" class="hero__danger">正在載入最新診斷...</p>
+      </div>
+      <div class="hero__snapshots">
+        <div class="hero__snapshot">
+          <span class="hero__snapshot-label">目前評分</span>
+          <strong id="hero-rating">-- ★</strong>
+        </div>
+        <div class="hero__snapshot">
+          <span class="hero__snapshot-label">距離跌星</span>
+          <strong id="hero-gap">--</strong>
+        </div>
+        <div class="hero__snapshot">
+          <span class="hero__snapshot-label">月流失風險</span>
+          <strong id="hero-loss">--</strong>
+        </div>
+      </div>
+    </header>
+
+    <section class="insight-grid">
+      <article class="insight-card">
+        <span class="insight-card__hint">落後幅度</span>
+        <h2 id="stat-rating">--</h2>
+        <p>與同商圈領先者的即時差距</p>
+      </article>
+      <article class="insight-card insight-card--alert">
+        <span class="insight-card__hint">近 7 天低評</span>
+        <h2 id="stat-negative">-- 則</h2>
+        <p>智能體已標記補救優先序</p>
+      </article>
+      <article class="insight-card">
+        <span class="insight-card__hint">潛在流失</span>
+        <h2 id="stat-loss">--</h2>
+        <p>依目前評分推估的月營收缺口</p>
+      </article>
+    </section>
+
+    <section class="card" id="section-reviews">
+      <div class="card__header">
+        <div>
+          <h2>評論燃點</h2>
+          <p class="card__subtitle">近 7 天的高危評論與智能草稿</p>
+        </div>
+      </div>
+      <div id="reviews-list" class="review-list"></div>
+    </section>
+
+    <section class="card" id="section-competitors">
+      <div class="card__header">
+        <div>
+          <h2>競品壓力牆</h2>
+          <p class="card__subtitle">與商圈領先者的差距指標</p>
+        </div>
+      </div>
+      <div id="competitor-primary" class="competitor-highlight"></div>
+      <details class="competitor-table" id="competitor-details">
+        <summary>展開查看競品明細</summary>
+        <table id="competitor-table"></table>
+      </details>
+    </section>
+
+    <section class="card" id="section-actions">
+      <div class="card__header">
+        <div>
+          <h2>守護行動藍圖</h2>
+          <p class="card__subtitle">立即、三日與 30 日的收斂計畫</p>
+        </div>
+      </div>
+      <div class="action-grid">
+        <article class="action-card">
+          <h3>今日補救</h3>
+          <ul id="plan-today"></ul>
+        </article>
+        <article class="action-card">
+          <h3>本週穩定</h3>
+          <ul id="plan-week"></ul>
+        </article>
+        <article class="action-card">
+          <h3>30 日收斂</h3>
+          <ul id="plan-month"></ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="card card--dark" id="section-radar" hidden>
+      <div class="card__header">
+        <div>
+          <h2>外部聲量雷達</h2>
+          <p class="card__subtitle">智能體偵測到的高風險訊息</p>
+        </div>
+      </div>
+      <div id="radar-list" class="radar-list"></div>
+    </section>
+
+    <section class="cta">
+      <div class="cta__badge">剩餘守護席次 <span id="seat-counter">8</span>｜智能體即時更新</div>
+      <div class="cta__grid">
+        <article class="cta-card cta-card--primary">
+          <header class="cta-card__header">
+            <span class="cta-card__icon">🚨</span>
+            <div>
+              <p class="cta-card__title">星級警報・當天版</p>
+              <p class="cta-card__price"><s>NT$9,800</s> 限時 $4,980</p>
+            </div>
+          </header>
+          <ul class="cta-card__list">
+            <li>營業時段每 10 分鐘智能偵測 1~3★ 評論</li>
+            <li>觸發後 15 分鐘推送安撫 / 補救 / 禮貌 3 版草稿</li>
+            <li>每日戰情、每週報告、每月策略全自動交付</li>
+          </ul>
+          <button id="cta-primary" class="btn btn--primary">查看詳細報表</button>
+        </article>
+        <article class="cta-card cta-card--secondary">
+          <header class="cta-card__header">
+            <span class="cta-card__icon">📈</span>
+            <div>
+              <p class="cta-card__title">智能守護方案</p>
+              <p class="cta-card__price"><s>NT$5,980</s> 限時 $2,980</p>
+            </div>
+          </header>
+          <ul class="cta-card__list">
+            <li>每週一次巡檢 + 草稿包，30 分鐘整理所有待辦</li>
+            <li>自選競品月報，掌握領先者策略與落差</li>
+            <li>智能體全程陪跑，0 人工作業阻力</li>
+          </ul>
+          <div class="cta-card__actions">
+            <button id="cta-secondary" class="btn btn--white">了解智能守護</button>
+            <button id="cta-home" class="btn btn--outline">回主頁測試</button>
+          </div>
+        </article>
+      </div>
+      <p class="cta__footer">付款後 15 分鐘交付完整診斷、行動清單與追蹤指標。</p>
+    </section>
+
+    <footer class="footnote">
+      <img src="../star-engine-form/logo.png" alt="星級引擎" width="40" height="40" />
+      <div>
+        <p>星級引擎專家智能體｜24 小時守護 Google Maps 與社群口碑</p>
+        <p class="footnote__link"><a id="back-to-form" href="#">想再檢測其他門市 →</a></p>
+      </div>
+    </footer>
+  </main>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="https://static.line-scdn.net/liff/edge/versions/2.21.2/sdk.js"></script>
+  <script src="../star-engine-form/config.runtime.js"></script>
+  <script src="../star-engine-form/config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
