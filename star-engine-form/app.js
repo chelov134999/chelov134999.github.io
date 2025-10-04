@@ -95,6 +95,7 @@ const state = {
   transition: {
     countdownId: null,
     timeoutId: null,
+    started: false,
   },
   report: null,
   mode: params.get('view') === 'report' ? 'report' : 'form',
@@ -261,6 +262,7 @@ function stopProgressTimers() {
     clearTimeout(state.transition.timeoutId);
     state.transition.timeoutId = null;
   }
+  state.transition.started = false;
 }
 
 async function initLiff() {
@@ -382,12 +384,11 @@ async function handleLeadSubmit(event) {
     }
 
     setStage('s1');
+    startTransitionToQuiz();
 
     const result = await leadRequest;
     state.leadId = result.lead_id || payload.lead_id;
     state.leadPayload = payload.place;
-
-    startTransitionToQuiz();
   } catch (error) {
     console.error(error);
     showToast(`送出失敗：${error.message}`);
@@ -403,6 +404,7 @@ async function handleLeadSubmit(event) {
       clearInterval(state.progress.messageId);
       state.progress.messageId = null;
     }
+    state.transition.started = false;
     state.leadId = '';
     state.leadPayload = null;
     state.quiz = { goal: '', tone: [], competitorsInput: [], skipped: false };
@@ -421,6 +423,8 @@ function startTransitionToQuiz() {
     clearTimeout(state.transition.timeoutId);
     state.transition.timeoutId = null;
   }
+
+  state.transition.started = true;
 
   if (els.transitionBar) {
     els.transitionBar.style.transition = 'none';
@@ -451,6 +455,7 @@ function startTransitionToQuiz() {
     els.submitBtn.disabled = false;
     els.submitBtn.textContent = '啟動 AI 初檢';
     resetProgressUI();
+    state.transition.started = false;
   }, TRANSITION_DURATION_MS);
 }
 
@@ -815,6 +820,7 @@ async function handleWeeklyDraft() {
 
 function resetFlow() {
   stopProgressTimers();
+  state.transition.started = false;
   state.stage = 's0';
   state.leadId = '';
   state.leadPayload = null;
