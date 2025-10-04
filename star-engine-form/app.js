@@ -350,11 +350,13 @@ async function handleLeadSubmit(event) {
         name: placeInput.name,
       },
     };
-    const result = await requestJSON(endpoints.lead, {
+
+    const leadRequest = requestJSON(endpoints.lead, {
       method: 'POST',
       body: JSON.stringify(payload),
     });
-    state.leadId = result.lead_id || payload.lead_id;
+
+    state.leadId = payload.lead_id;
     state.leadPayload = payload.place;
     state.quiz = { goal: '', tone: [], competitorsInput: [], skipped: false };
     state.progress.startAt = Date.now();
@@ -363,13 +365,43 @@ async function handleLeadSubmit(event) {
     state.progress.tickerIndex = 0;
     state.progress.ninetyReachedAt = 0;
     state.progress.lastStage = 'collecting';
+
+    if (els.transitionCounter) {
+      els.transitionCounter.textContent = '…';
+    }
+    if (els.transitionBar) {
+      els.transitionBar.style.transition = 'none';
+      els.transitionBar.style.width = '0%';
+    }
+
+    setStage('s1');
     animateFrontProgress(PROGRESS_FAKE_LIMIT);
     startMessageTicker();
-    setStage('s1');
+
+    const result = await leadRequest;
+    state.leadId = result.lead_id || payload.lead_id;
+    state.leadPayload = payload.place;
+
     startTransitionToQuiz();
   } catch (error) {
     console.error(error);
     showToast(`送出失敗：${error.message}`);
+    if (state.transition.countdownId) {
+      clearInterval(state.transition.countdownId);
+      state.transition.countdownId = null;
+    }
+    if (state.transition.timeoutId) {
+      clearTimeout(state.transition.timeoutId);
+      state.transition.timeoutId = null;
+    }
+    if (state.progress.messageId) {
+      clearInterval(state.progress.messageId);
+      state.progress.messageId = null;
+    }
+    state.leadId = '';
+    state.leadPayload = null;
+    state.quiz = { goal: '', tone: [], competitorsInput: [], skipped: false };
+    setStage('s0');
     els.submitBtn.disabled = false;
     els.submitBtn.textContent = '開始 30 秒初檢';
   }
@@ -417,7 +449,6 @@ function startTransitionToQuiz() {
     if (els.progressEtaS2) {
       els.progressEtaS2.textContent = PROGRESS_TICKS[0].eta;
     }
-    startPolling();
   }, TRANSITION_DURATION_MS);
 }
 
@@ -541,6 +572,9 @@ function acknowledgeSummary() {
   // Prevent double submission
   els.summaryConfirm.disabled = true;
   els.summaryConfirm.textContent = '已確認';
+  if (!state.progress.pollId) {
+    startPolling();
+  }
 }
 
 function startPolling() {
