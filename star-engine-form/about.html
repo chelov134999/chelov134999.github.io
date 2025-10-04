@@ -3,308 +3,292 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>關於我們｜星級引擎</title>
+  <title>關於星級引擎</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-from: #0b1530;
-      --bg-to: #142954;
-      --card-from: rgba(27, 46, 92, 0.92);
-      --card-to: rgba(23, 69, 126, 0.88);
-      --accent: #f97316;
-      --accent-soft: rgba(249, 115, 22, 0.18);
-      --text: #f1f5f9;
-      --text-muted: rgba(226, 232, 240, 0.76);
+      --bg: #f5f8ff;
+      --card: #ffffff;
+      --subtle: #eef3ff;
+      --stroke: rgba(21, 45, 90, 0.12);
+      --shadow: 0 24px 48px -32px rgba(15, 23, 42, 0.28);
+      --text: #1f2937;
+      --muted: #566074;
+      --primary: #1d4ed8;
+      --primary-600: #1741b8;
+      --accent: #7a3bff;
+      --warm: #ff8a4c;
+      --link: #77aadd;
+      --radius: 22px;
       --font: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    *, *::before, *::after { box-sizing: border-box; }
 
     body {
       margin: 0;
       min-height: 100vh;
       font-family: var(--font);
       color: var(--text);
-      background: linear-gradient(140deg, var(--bg-from) 0%, var(--bg-to) 55%, #1b2f60 100%);
+      background: radial-gradient(circle at 18% 12%, rgba(119, 170, 221, 0.18), transparent 46%),
+                  radial-gradient(circle at 78% 18%, rgba(255, 217, 187, 0.18), transparent 48%),
+                  linear-gradient(135deg, #f9fbff 0%, #eef4ff 58%, #e7f1ff 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: clamp(32px, 6vw, 64px) 20px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    body::before,
-    body::after {
-      content: '';
-      position: absolute;
-      width: 420px;
-      height: 420px;
-      border-radius: 50%;
-      filter: blur(140px);
-      opacity: 0.6;
-      z-index: 0;
-    }
-
-    body::before {
-      background: #2563eb;
-      top: -120px;
-      right: -160px;
-    }
-
-    body::after {
-      background: #f97316;
-      bottom: -160px;
-      left: -120px;
+      padding: clamp(32px, 6vw, 72px) 20px;
     }
 
     main {
-      width: min(1040px, 100%);
-      position: relative;
-      z-index: 1;
-    }
-
-    .hero-card {
-      position: relative;
-      background: linear-gradient(125deg, var(--card-from) 0%, var(--card-to) 64%, rgba(17, 58, 119, 0.92) 100%);
-      border-radius: clamp(28px, 5vw, 40px);
-      padding: clamp(32px, 6vw, 56px);
-      box-shadow: 0 48px 80px -48px rgba(8, 19, 35, 0.85);
+      width: min(900px, 100%);
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow);
+      padding: clamp(32px, 6vw, 58px);
       display: grid;
-      gap: clamp(22px, 3vw, 32px);
-      overflow: hidden;
+      gap: 28px;
     }
 
-    .hero-card::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 65%);
-      pointer-events: none;
-    }
-
-    .hero-card__badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 18px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.12);
-      font-size: 0.85rem;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-    }
-
-    .hero-card__eyebrow {
-      margin: 0;
-      font-size: 0.9rem;
-      letter-spacing: 0.32em;
-      text-transform: uppercase;
-      color: rgba(148, 163, 184, 0.85);
-    }
-
-    h1 {
-      margin: 0;
-      font-weight: 700;
-      font-size: clamp(2.1rem, 4.6vw, 3rem);
-      line-height: 1.3;
-      letter-spacing: 0.01em;
-    }
-
-    .hero-card__lead {
-      margin: 0;
-      color: var(--text-muted);
-      font-size: clamp(1rem, 2.2vw, 1.1rem);
-      line-height: 1.9;
-      max-width: 78ch;
-    }
-
-    .feature-grid {
+    header {
       display: grid;
-      gap: 16px;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
     }
 
-    .feature-item {
+    .heading {
       display: flex;
-      align-items: flex-start;
+      flex-wrap: wrap;
+      align-items: center;
       gap: 14px;
-      padding: 18px;
-      border-radius: 18px;
-      background: rgba(15, 23, 42, 0.18);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(148, 163, 184, 0.16);
     }
 
-    .feature-icon {
+    .heading-badge {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 32px;
-      border-radius: 12px;
-      background: rgba(249, 115, 22, 0.16);
-      color: var(--accent);
-      font-weight: 700;
-      font-size: 0.9rem;
-      flex-shrink: 0;
+      gap: 12px;
+      padding: 12px 22px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(29, 78, 216, 0.95), rgba(37, 99, 235, 0.8));
+      color: #ffffff;
+      box-shadow: 0 18px 36px -24px rgba(29, 78, 216, 0.5);
     }
 
-    .feature-text {
-      color: rgba(226, 232, 240, 0.88);
-      font-size: 0.95rem;
+    .heading-badge__icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #ffffff;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 8px 20px -12px rgba(29, 78, 216, 0.45);
+    }
+
+    .heading-badge__icon img {
+      width: 24px;
+      height: 24px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(2.2rem, 4vw, 2.8rem);
+      letter-spacing: 0.02em;
+    }
+
+    header h1::after {
+      content: '';
+      display: block;
+      width: 48px;
+      height: 3px;
+      margin-top: 12px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(29, 78, 216, 0.3), rgba(122, 59, 255, 0.4));
+    }
+
+    header p {
+      margin: 0;
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .section-card {
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      padding: clamp(24px, 4vw, 36px);
+      display: grid;
+      gap: 18px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .section-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 40px -30px rgba(15, 23, 42, 0.3);
+    }
+
+    .section-card--hero {
+      background: linear-gradient(135deg, rgba(77, 114, 255, 0.18), rgba(199, 209, 255, 0.08));
+      border-color: rgba(29, 78, 216, 0.25);
+    }
+
+    .section-card--cool {
+      background: linear-gradient(135deg, rgba(122, 59, 255, 0.12), rgba(221, 229, 255, 0.1));
+      border-color: rgba(122, 59, 255, 0.22);
+    }
+
+    .section-card--warm {
+      background: linear-gradient(135deg, rgba(255, 193, 166, 0.18), rgba(255, 225, 205, 0.12));
+      border-color: rgba(255, 138, 76, 0.24);
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.35rem;
+      color: var(--primary);
+    }
+
+    p {
       line-height: 1.7;
     }
 
-    .cta-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 14px;
-      align-items: center;
+    ul {
+      margin: 0;
+      padding-left: 24px;
+      color: var(--muted);
+      line-height: 1.8;
+      list-style: none;
     }
 
-    .cta-button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      padding: 14px 26px;
-      border-radius: 999px;
-      font-weight: 600;
-      font-size: 1rem;
-      text-decoration: none;
-      color: #0b1530;
-      background: linear-gradient(135deg, #fbbf24, #f97316 55%, #fb923c 100%);
-      box-shadow: 0 20px 38px -18px rgba(249, 115, 22, 0.45);
-      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    ul li {
+      position: relative;
+      padding-left: 14px;
     }
 
-    .cta-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 24px 42px -14px rgba(251, 191, 36, 0.45);
+    ul li::before {
+      content: '';
+      position: absolute;
+      left: -18px;
+      top: 0.75em;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px rgba(122, 59, 255, 0.45);
     }
 
-    .cta-button.secondary {
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--text);
-      box-shadow: inset 0 0 0 1px rgba(226, 232, 240, 0.22);
-    }
-
-    .cta-button.secondary:hover {
-      transform: translateY(-2px);
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.38);
-    }
-
-    .contact-strip {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 18px;
-      align-items: center;
-      padding: 18px 22px;
-      border-radius: 16px;
-      background: rgba(15, 23, 42, 0.22);
-      border: 1px solid rgba(148, 163, 184, 0.16);
+    .note {
+      margin: 0;
+      color: var(--muted);
       font-size: 0.95rem;
     }
 
-    .contact-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      color: rgba(226, 232, 240, 0.9);
+    .cta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .cta a {
+      flex: 1 1 240px;
+      text-align: center;
+      padding: 14px 20px;
+      border-radius: 14px;
+      font-weight: 600;
       text-decoration: none;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      border: 1px solid transparent;
     }
 
-    .contact-item svg {
-      width: 18px;
-      height: 18px;
-      fill: currentColor;
+    .cta a.primary {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 18px 36px -24px rgba(29, 78, 216, 0.5);
     }
 
-    .hint {
+    .cta a.primary:hover { transform: translateY(-2px); }
+
+    .cta a.secondary {
+      background: var(--warm);
+      color: #ffffff;
+      box-shadow: 0 18px 32px -24px rgba(255, 138, 76, 0.4);
+    }
+
+    .cta a.secondary:hover { transform: translateY(-2px); }
+
+    .contact {
       margin: 0;
-      color: rgba(229, 231, 235, 0.6);
-      font-size: 0.9rem;
-      line-height: 1.6;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.95rem;
     }
 
-    @media (max-width: 600px) {
-      .hero-card {
-        padding: 28px 24px;
-      }
-      .feature-item {
-        padding: 16px;
-      }
-      .cta-row {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .cta-button {
-        width: 100%;
-      }
-      .contact-strip {
-        flex-direction: column;
-        align-items: flex-start;
-      }
+    .contact a {
+      color: var(--link);
+      text-decoration: underline;
+    }
+
+    @media (max-width: 640px) {
+      main { border-radius: 18px; padding: 28px; }
+      .heading { flex-direction: column; align-items: flex-start; }
+      .cta a { flex: 1 1 100%; }
     }
   </style>
 </head>
 <body>
   <main>
-    <article class="hero-card">
-      <span class="hero-card__badge">關於我們</span>
-      <p class="hero-card__eyebrow">PULSE INTELLIGENCE · AI FOR LOCAL BUSINESSES</p>
-      <h1>把大型企業的口碑守護力，裝進中小店的一支 LINE。</h1>
-      <p class="hero-card__lead">
-        我們 24 小時監控 Google Maps 新評論與商圈動態，10 分鐘內提醒 1–3★ 風險，附上 2–3 版回覆草稿與行動建議，
-        讓你當天處理、當天了結危機。
-      </p>
-
-      <div class="feature-grid">
-        <div class="feature-item">
-          <span class="feature-icon">1</span>
-          <p class="feature-text">即時偵測：營業時段每 10 分鐘掃描最近 5 則 Google Maps 評論。</p>
+    <header>
+      <div class="heading">
+        <div class="heading-badge">
+          <span class="heading-badge__icon"><img src="logo.png" alt="星級引擎" width="24" height="24" /></span>
+          <span>脈動智匯｜星級引擎</span>
         </div>
-        <div class="feature-item">
-          <span class="feature-icon">2</span>
-          <p class="feature-text">一鍵回覆：複製草稿、跳轉官方回覆框，流程合規又省時。</p>
-        </div>
-        <div class="feature-item">
-          <span class="feature-icon">3</span>
-          <p class="feature-text">競品雷達：每月追蹤 5 名對手，掌握星等、評論量與距離壓制。</p>
-        </div>
-        <div class="feature-item">
-          <span class="feature-icon">4</span>
-          <p class="feature-text">駕駛艙報表：Star Daily / Star Weekly / Star Monthly 三段節奏同步推送。</p>
-        </div>
-        <div class="feature-item">
-          <span class="feature-icon">5</span>
-          <p class="feature-text">升星路線：提供下月「三件事」清單，照做即可穩定前進。</p>
-        </div>
+        <h1>讓 Google 與 AI 同時看見你的品牌</h1>
       </div>
+      <p>星級引擎是脈動智匯的 AI 品牌守護服務。透過四格初檢、即時監控與自動生成的品牌小站，我們讓中小商家也能把「被看見、被喜歡、被信任」一次做到位。</p>
+    </header>
 
-      <div class="cta-row">
-        <a class="cta-button" href="https://line.me/ti/p/@star-up" target="_blank" rel="noopener">開始 7 天體驗</a>
-        <a class="cta-button secondary" href="https://mdzh.io" target="_blank" rel="noopener">查看守護方案</a>
-      </div>
+    <section class="section-card section-card--hero">
+      <h2>我們帶來的改變</h2>
+      <ul>
+        <li><strong>可見度提升：</strong> AI 生成的品牌小站搭配結構化標記，讓 Google 更快讀懂你的優勢。</li>
+        <li><strong>掌控力回到手上：</strong> 每日、每週、每月報表把危機與亮點轉成「下一步行動」。</li>
+        <li><strong>回覆更有溫度：</strong> 負評草稿 2~3 版直接送到 LINE，不漏任何一則評論。</li>
+      </ul>
+    </section>
 
-      <div class="contact-strip">
-        <a class="contact-item" href="mailto:ai@mdzh.io">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h16a2 2 0 0 0 2-2V6c0-1.1-.9-2-2-2Zm0 2-8 5-8-5h16Zm0 12H4V8l8 5 8-5v10Z"/></svg>
-          ai@mdzh.io
-        </a>
-        <a class="contact-item" href="https://mdzh.io" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm6.92 6h-3.26a15.8 15.8 0 0 0-1.42-4.33A8.03 8.03 0 0 1 18.92 8ZM12 4.06c.78 1.1 1.4 2.53 1.82 3.94h-3.64c.42-1.41 1.04-2.84 1.82-3.94ZM4.26 10c.22-1.4.76-2.7 1.54-3.83A13.34 13.34 0 0 1 8.34 10H4.26Zm0 4h4.08a13.07 13.07 0 0 1-2.54 3.83A7.96 7.96 0 0 1 4.26 14Zm3.74 4.27c.77-1.13 1.4-2.56 1.82-3.87h3.36c.42 1.31 1.05 2.74 1.82 3.87a7.93 7.93 0 0 1-7 0Zm8.56-.44a15.63 15.63 0 0 0-1.46-3.83h3.26a8.03 8.03 0 0 1-1.8 3.83ZM15.66 10a13.34 13.34 0 0 1 2.54-3.83A8.03 8.03 0 0 1 19.74 10h-4.08ZM9.84 12c0-.68.05-1.35.14-2h4.04c.09.65.14 1.32.14 2 0 .68-.05 1.35-.14 2H9.98a15.1 15.1 0 0 1-.14-2Z"/></svg>
-          mdzh.io
-        </a>
-      </div>
+    <section class="section-card section-card--cool">
+      <h2>我們怎麼做到</h2>
+      <ul>
+        <li><strong>30 秒初檢：</strong> 四格資料啟動，馬上取得 AI 報表預覽與品牌小站範本。</li>
+        <li><strong>24/7 智能守護：</strong> 營業時段 10 分鐘偵測，夜間合併彙整，讓通知既即時又不吵。</li>
+        <li><strong>品牌內容矩陣：</strong> 好評、待辦、草稿會自動轉成 SEO 友善的網頁內容與案例。</li>
+      </ul>
+      <p class="note">全程由智能客服協助，無需額外學習或加人力。</p>
+    </section>
 
-      <p class="hint">星級引擎由脈動智匯打造，以 AI 驅動的口碑守護方案，協助台灣中小企業在最短時間內掌握評分、評論與商圈差距。</p>
-    </article>
+    <section class="section-card section-card--warm">
+      <h2>我們是誰</h2>
+      <p>脈動智匯是一支專注 AI 商業應用的團隊，擁有超過十年的品牌營運與資料處理經驗。我們服務過餐飲、醫美、零售、旅宿等產業，知道中小商家在人力、時間與學習上的真實限制。</p>
+      <p>星級引擎因此被設計為「全自動、零代發、資料可掌控」的品牌守護方案：我們負責把評論、競品與行銷資訊整合好，讓你專注在現場體驗與營運決策。</p>
+    </section>
+
+    <section class="section-card">
+      <h2>為什麼店家選擇我們</h2>
+      <ul>
+        <li><strong>見效快：</strong> 上線 30 分鐘內即可看到 AI 報表預覽、三件事待辦與草稿。</li>
+        <li><strong>可驗證：</strong> 每份報表都有明確指標與執行建議，改善成效看得見。</li>
+        <li><strong>可持續：</strong> 品牌小站長期聚合好評與案例，成為永續的公眾資產。</li>
+      </ul>
+    </section>
+
+    <div class="cta">
+      <a class="primary" href="index.html">預約完整診斷</a>
+      <a class="secondary" href="sample-report.html">預覽智慧報表</a>
+    </div>
+
+    <p class="contact">需要協助？ 寫信 <a href="mailto:ai@mdzh.io">ai@mdzh.io</a> 或加入官方 LINE <a href="https://line.me/ti/p/@star-up" target="_blank" rel="noopener">@star-up</a></p>
   </main>
 </body>
 </html>

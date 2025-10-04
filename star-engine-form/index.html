@@ -12,12 +12,9 @@
 <body>
   <header class="app-header">
     <div class="app-header__brand">
-      <img src="logo.png" alt="星級引擎" width="36" height="36" />
+      <span class="app-header__brand-logo"><img src="logo.png" alt="星級引擎" width="24" height="24" /></span>
       <span class="app-header__title">星級引擎｜脈動智匯</span>
     </div>
-    <nav class="app-header__actions">
-      <a class="ghost-link" href="about.html" target="_blank" rel="noopener">關於我們</a>
-    </nav>
   </header>
 
   <main class="page" id="app">
@@ -25,9 +22,9 @@
     <section id="stage-s0" class="stage stage--active" data-stage="s0">
       <div class="stage-panel stage-panel--form">
         <header class="stage-panel__header">
-          <span class="stage-tag">S0 · 30 秒智能初檢</span>
-          <h1>輸入四格資訊，立即啟動智慧初檢</h1>
-          <p>請一次填好城市、路段、門牌與店名，智能體會即時比對近 7 天低評與商圈競品。</p>
+          <span class="stage-tag">30 秒智能初檢</span>
+          <h1>輸入四格資訊，30 秒產出 AI 初檢與品牌小站</h1>
+          <p>填上城市、路段、門牌與店名，星級引擎會即時掃描近 7 天評論、競品差距，並為你預備專屬樣本報表與品牌小站預覽。</p>
         </header>
 
         <form id="lead-form" class="stage-form" autocomplete="off">
@@ -50,12 +47,7 @@
             </label>
           </div>
 
-          <div class="form-footnote">
-            <span class="badge">不讀取帳密、不代發回覆</span>
-            <span class="badge badge--outline">14 天內可申請全額退費</span>
-          </div>
-
-          <button id="submit-btn" type="submit" class="btn btn--primary btn--lg">開始 30 秒初檢</button>
+          <button id="submit-btn" type="submit" class="btn btn--primary btn--lg">啟動 AI 初檢</button>
         </form>
       </div>
     </section>
@@ -68,7 +60,11 @@
         </div>
         <div class="transition-copy">
           <h2>已收到！正在定位您的店家與商圈…</h2>
-          <p>我們正向 Google Maps 收集最新資料，稍後會自動生成您的專屬設定。</p>
+          <p class="muted">我們正向 Google Maps 收集最新資料，稍後會自動生成您的專屬設定。</p>
+          <div class="transition-meta">
+            <span id="transition-counter">3</span>
+            <small>秒後帶您進入專屬調校</small>
+          </div>
         </div>
       </div>
     </section>
@@ -77,7 +73,7 @@
     <section id="stage-s2" class="stage" data-stage="s2" hidden>
       <div class="stage-panel stage-panel--quiz">
         <header class="stage-panel__header">
-          <span class="stage-tag">S2 · 風格設定</span>
+          <span class="stage-tag">請調適您的專屬引擎</span>
           <h2>先幫您客製化風格（約 60 秒）</h2>
           <p class="muted">同時我們正在抓取評論與競品資料，完成後會自動帶入結果。</p>
         </header>
@@ -104,7 +100,7 @@
           </fieldset>
 
           <fieldset class="quiz-group">
-            <legend>Q2. 回覆語氣偏好（可複選 1–2 項）</legend>
+            <legend>Q2. 希望回覆語氣？（可複選 1–2 項）</legend>
             <div class="quiz-columns">
               <label class="option option--checkbox">
                 <input type="checkbox" name="quiz-tone" value="soothing" />
@@ -127,7 +123,7 @@
           </fieldset>
 
           <fieldset class="quiz-group">
-            <legend>Q3. 想關注的競品（1–3 家，可略過）</legend>
+            <legend>Q3. 想關注的競品（可略過）</legend>
             <textarea id="quiz-competitors" name="quiz-competitors" rows="3" placeholder="輸入店名或地址；用逗號 / 換行分隔，例如：鼎好鍋物, 阿蘭餃子館"></textarea>
             <p class="helper-text">若留空，系統會依據資料自動挑選 5 家同商圈競品。</p>
           </fieldset>
@@ -148,7 +144,7 @@
         </div>
         <div class="progress-dock__meta">
           <span id="progress-label">資料收集中… 進度 0%</span>
-          <span id="progress-eta" class="muted">預估完成時間 60 秒內</span>
+          <span id="progress-eta" class="muted">正在抓取評論與競品資料</span>
         </div>
       </div>
     </section>
@@ -157,9 +153,9 @@
     <section id="stage-s3" class="stage" data-stage="s3" hidden>
       <div class="stage-panel stage-panel--summary">
         <header class="stage-panel__header">
-          <span class="stage-tag">S3 · 個人化設定完成</span>
-          <h2>已設定完成，以下內容將為您專屬生成</h2>
-          <p class="muted">完成後您會看到：① 5 名競品差距雷達 ② 本週三件事 ③ 3 版回覆草稿。</p>
+          <span class="stage-tag">專屬調校完成</span>
+          <h2>設定完成，正在生成專屬報表與品牌頁</h2>
+          <p class="muted">完成後您會看到：① AI 報表摘要 ② 本週三件事 ③ 品牌小站預覽與回覆草稿。</p>
         </header>
 
         <div class="summary-card">
@@ -197,8 +193,8 @@
       <div class="stage-panel stage-panel--result">
         <header class="stage-panel__header">
           <span class="stage-tag stage-tag--success">S4 · 分析完成</span>
-          <h2>分析完成！這是您的智能初檢</h2>
-          <p class="muted">根據您的設定，我們已生成差距雷達、三件事與三版草稿，點擊即可操作。</p>
+          <h2>初檢完成！這是您的 AI 報表預覽</h2>
+          <p class="muted">我們已完成差距雷達、三件事與回覆草稿，並為你準備品牌樣本報表，點擊即可查看。</p>
         </header>
 
         <div class="result-grid">
@@ -240,13 +236,17 @@
         </header>
 
         <div class="timeout-actions">
-          <a id="timeout-sample" class="btn btn--primary" href="https://app.mdzh.io/samples/report-v1.html" target="_blank" rel="noopener">查看樣張</a>
+          <a id="timeout-sample" class="btn btn--primary" href="sample-report.html" target="_blank" rel="noopener">查看樣本報表</a>
           <button id="timeout-weekly" type="button" class="btn btn--outline">先拿本週三件事（試算版）</button>
         </div>
         <button id="timeout-back" type="button" class="btn btn--ghost">返回主畫面</button>
       </div>
-    </section>
-  </main>
+  </section>
+ </main>
+
+  <footer class="footer-link">
+    <a href="about.html" id="about-link">關於我們</a>
+  </footer>
 
   <div class="toast" id="toast" hidden></div>
 

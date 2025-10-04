@@ -9,6 +9,7 @@ window.__STAR_ENGINE_CONFIG__ = {
   "reportEndpoint": "https://chelov134999.app.n8n.cloud/webhook/report-data",
   "reportUrl": "https://liff.line.me/2008215846-5LwXlWVN?view=report",
   "trialUrl": "https://line.me/ti/p/@star-up",
+  "aboutUrl": "https://liff.line.me/2008215846-5LwXlWVN?view=about",
   "checkoutPrimaryUrl": "https://chelov134999.app.n8n.cloud/pay/star-guard-4980",
   "checkoutSecondaryUrl": "https://chelov134999.app.n8n.cloud/pay/star-cabin-2980",
   "googlePlacesApiKey": "AIzaSyCRy2IFDTjfA0co5EBggpPTcZG323YPaNY",

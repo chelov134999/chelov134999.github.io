@@ -26,6 +26,7 @@
     reportEndpoint: coalesce('reportEndpoint'),
     reportUrl: coalesce('reportUrl'),
     formUrl: coalesce('formUrl') || coalesce('form_url'),
+    aboutUrl: coalesce('aboutUrl') || coalesce('about_url'),
     trialUrl: coalesce('trialUrl'),
     googlePlacesApiKey: coalesce('googlePlacesApiKey'),
     scraperApiKey: coalesce('scraperApiKey'),
