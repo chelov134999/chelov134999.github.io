@@ -10,7 +10,6 @@ const endpoints = {
 
 const reportUrl = config.reportUrl || config.report_url || '';
 const formUrl = config.formUrl || config.form_url || window.location.href;
-const trialUrl = config.trialUrl || 'https://line.me/ti/p/@star-up';
 const planUrl = config.checkoutPrimaryUrl || config.checkout_primary_url || '#';
 const sampleReportUrl = config.sampleReportUrl || 'https://app.mdzh.io/samples/report-v1.html';
 
@@ -47,6 +46,7 @@ const els = {
   summaryTone: document.getElementById('summary-tone'),
   summaryCompetitors: document.getElementById('summary-competitors'),
   summaryConfirm: document.getElementById('summary-confirm'),
+  summaryBack: document.getElementById('summary-back'),
   progressBarS2: document.getElementById('progress-bar'),
   progressLabelS2: document.getElementById('progress-label'),
   progressEtaS2: document.getElementById('progress-eta'),
@@ -56,7 +56,7 @@ const els = {
   resultRadarList: document.getElementById('result-radar-list'),
   resultActionsList: document.getElementById('result-actions-list'),
   resultDraftsList: document.getElementById('result-drafts-list'),
-  ctaTrial: document.getElementById('cta-trial'),
+  ctaReport: document.getElementById('cta-report'),
   ctaPlan: document.getElementById('cta-plan'),
   returnHome: document.getElementById('return-home'),
   timeoutSample: document.getElementById('timeout-sample'),
@@ -184,6 +184,35 @@ function updateProgressUI(percent, etaSeconds, stageLabel = '') {
   state.progress.percent = safePercent;
 }
 
+function resetProgressUI() {
+  state.progress.percent = 0;
+  state.progress.frontPercent = 0;
+  state.progress.ninetyReachedAt = 0;
+
+  if (els.progressBarS2) {
+    els.progressBarS2.style.width = '0%';
+  }
+  if (els.progressBarS3) {
+    els.progressBarS3.style.width = '0%';
+  }
+
+  const baseLabel = '資料收集中… 進度 0%';
+  const baseEta = '正在準備最新評論與競品資料';
+
+  if (els.progressLabelS2) {
+    els.progressLabelS2.textContent = baseLabel;
+  }
+  if (els.progressLabelS3) {
+    els.progressLabelS3.textContent = baseLabel;
+  }
+  if (els.progressEtaS2) {
+    els.progressEtaS2.textContent = baseEta;
+  }
+  if (els.progressEtaS3) {
+    els.progressEtaS3.textContent = baseEta;
+  }
+}
+
 function animateFrontProgress(targetPercent, duration = TRANSITION_DURATION_MS) {
   const isStillInFakeZone = state.progress.percent < PROGRESS_FAKE_LIMIT;
   const effectiveTarget = isStillInFakeZone
@@ -209,30 +238,6 @@ function animateFrontProgress(targetPercent, duration = TRANSITION_DURATION_MS) 
   };
 
   requestAnimationFrame(step);
-}
-
-function startMessageTicker() {
-  if (state.progress.messageId) {
-    clearInterval(state.progress.messageId);
-  }
-  state.progress.tickerIndex = 0;
-  state.progress.messageId = setInterval(() => {
-    if (state.stage !== 's2' && state.stage !== 's3') return;
-    const step = PROGRESS_TICKS[state.progress.tickerIndex % PROGRESS_TICKS.length];
-    const target = step.percent;
-    if (target > state.progress.percent) {
-      updateProgressUI(target, null, step.label);
-    } else if (step.label && els.progressLabelS2) {
-      els.progressLabelS2.textContent = step.label;
-      if (els.progressLabelS3) {
-        els.progressLabelS3.textContent = step.label;
-      }
-    }
-    if (step.eta && els.progressEtaS2) {
-      els.progressEtaS2.textContent = step.eta;
-    }
-    state.progress.tickerIndex += 1;
-  }, 10_000);
 }
 
 function stopProgressTimers() {
@@ -328,7 +333,7 @@ async function handleLeadSubmit(event) {
   }
 
   els.submitBtn.disabled = true;
-  els.submitBtn.textContent = '送出中…';
+  els.submitBtn.textContent = '啟動中…';
 
   try {
     const leadId = generateLeadId();
@@ -366,6 +371,8 @@ async function handleLeadSubmit(event) {
     state.progress.ninetyReachedAt = 0;
     state.progress.lastStage = 'collecting';
 
+    resetProgressUI();
+
     if (els.transitionCounter) {
       els.transitionCounter.textContent = '…';
     }
@@ -375,8 +382,6 @@ async function handleLeadSubmit(event) {
     }
 
     setStage('s1');
-    animateFrontProgress(PROGRESS_FAKE_LIMIT);
-    startMessageTicker();
 
     const result = await leadRequest;
     state.leadId = result.lead_id || payload.lead_id;
@@ -403,7 +408,7 @@ async function handleLeadSubmit(event) {
     state.quiz = { goal: '', tone: [], competitorsInput: [], skipped: false };
     setStage('s0');
     els.submitBtn.disabled = false;
-    els.submitBtn.textContent = '開始 30 秒初檢';
+    els.submitBtn.textContent = '啟動 AI 初檢';
   }
 }
 
@@ -444,11 +449,8 @@ function startTransitionToQuiz() {
   state.transition.timeoutId = setTimeout(() => {
     setStage('s2');
     els.submitBtn.disabled = false;
-    els.submitBtn.textContent = '開始 30 秒初檢';
-    updateProgressUI(PROGRESS_FAKE_LIMIT, null, PROGRESS_TICKS[0].label);
-    if (els.progressEtaS2) {
-      els.progressEtaS2.textContent = PROGRESS_TICKS[0].eta;
-    }
+    els.submitBtn.textContent = '啟動 AI 初檢';
+    resetProgressUI();
   }, TRANSITION_DURATION_MS);
 }
 
@@ -533,7 +535,7 @@ async function submitQuiz(values, skipped = false) {
 
     updateSummary(values, skipped);
     setStage('s3');
-    animateFrontProgress(Math.max(30, state.progress.frontPercent));
+    resetProgressUI();
   } catch (error) {
     console.error(error);
     showToast(`儲存設定失敗：${error.message}`);
@@ -575,6 +577,18 @@ function acknowledgeSummary() {
   if (!state.progress.pollId) {
     startPolling();
   }
+}
+
+function returnToQuizFromSummary() {
+  stopProgressTimers();
+  resetProgressUI();
+  state.progress.timeoutFired = false;
+  state.progress.lastStage = '';
+  if (els.summaryConfirm) {
+    els.summaryConfirm.disabled = false;
+    els.summaryConfirm.textContent = '確認設定，開始分析';
+  }
+  setStage('s2');
 }
 
 function startPolling() {
@@ -759,9 +773,6 @@ function renderAnalysisReport() {
     els.summaryTone.textContent = toneLabel || els.summaryTone.textContent;
   }
 
-  if (els.ctaTrial) {
-    els.ctaTrial.href = trialUrl;
-  }
   if (els.ctaPlan) {
     els.ctaPlan.href = planUrl || '#';
   }
@@ -825,20 +836,27 @@ function resetFlow() {
   if (els.leadForm) {
     els.leadForm.reset();
   }
+  if (els.submitBtn) {
+    els.submitBtn.disabled = false;
+    els.submitBtn.textContent = '啟動 AI 初檢';
+  }
   if (els.quizForm) {
     els.quizForm.reset();
     els.quizError.hidden = true;
   }
   if (els.summaryConfirm) {
     els.summaryConfirm.disabled = false;
-    els.summaryConfirm.textContent = '保持這樣，很好';
+    els.summaryConfirm.textContent = '確認設定，開始分析';
   }
-  updateProgressUI(0);
+  resetProgressUI();
   setStage('s0');
 }
 
 function redirectToReport() {
-  if (!state.report || !reportUrl) return;
+  if (!state.report || !reportUrl) {
+    showToast('尚未準備好完整報表', 2000);
+    return;
+  }
   const token = state.report.token || '';
   const target = token
     ? `${reportUrl}${reportUrl.includes('?') ? '&' : '?'}token=${encodeURIComponent(token)}`
@@ -851,11 +869,16 @@ function attachEventListeners() {
   els.quizForm?.addEventListener('submit', handleQuizSubmit);
   els.quizSkip?.addEventListener('click', handleQuizSkip);
   els.summaryConfirm?.addEventListener('click', acknowledgeSummary);
+  els.summaryBack?.addEventListener('click', returnToQuizFromSummary);
   els.returnHome?.addEventListener('click', resetFlow);
   els.timeoutBack?.addEventListener('click', resetFlow);
   els.timeoutWeekly?.addEventListener('click', handleWeeklyDraft);
   els.copyActions?.addEventListener('click', (event) => {
     event.preventDefault();
+  });
+  els.ctaReport?.addEventListener('click', (event) => {
+    event.preventDefault();
+    redirectToReport();
   });
   els.aboutLink?.addEventListener('click', (event) => {
     event.preventDefault();
@@ -877,9 +900,6 @@ function attachEventListeners() {
 
   if (els.timeoutSample && sampleReportUrl) {
     els.timeoutSample.href = sampleReportUrl;
-  }
-  if (els.ctaTrial && trialUrl) {
-    els.ctaTrial.href = trialUrl;
   }
   if (els.ctaPlan && planUrl) {
     els.ctaPlan.href = planUrl;

@@ -10,19 +10,14 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="app-header">
-    <div class="app-header__brand">
-      <span class="app-header__brand-logo"><img src="logo.png" alt="星級引擎" width="24" height="24" /></span>
-      <span class="app-header__title">星級引擎｜脈動智匯</span>
-    </div>
-  </header>
-
   <main class="page" id="app">
     <!-- S0｜四格輸入 -->
     <section id="stage-s0" class="stage stage--active" data-stage="s0">
       <div class="stage-panel stage-panel--form">
-        <header class="stage-panel__header">
-          <span class="stage-tag">30 秒智能初檢</span>
+        <div class="brand-line">
+          <span class="brand-line__text">星級引擎｜脈動智匯</span>
+        </div>
+        <header class="stage-panel__header stage-panel__header--compact">
           <h1>輸入四格資訊，30 秒產出 AI 初檢與品牌小站</h1>
           <p>填上城市、路段、門牌與店名，星級引擎會即時掃描近 7 天評論、競品差距，並為你預備專屬樣本報表與品牌小站預覽。</p>
         </header>
@@ -47,8 +42,10 @@
             </label>
           </div>
 
-          <button id="submit-btn" type="submit" class="btn btn--primary btn--lg">啟動 AI 初檢</button>
+          <button id="submit-btn" type="submit" class="btn btn--primary">啟動 AI 初檢</button>
         </form>
+
+        <p class="form-note">填完四格後立即啟動 AI 初檢。</p>
       </div>
     </section>
 
@@ -59,8 +56,8 @@
           <div class="transition-bar" id="transition-bar"></div>
         </div>
         <div class="transition-copy">
-          <h2>已收到！正在定位您的店家與商圈…</h2>
-          <p class="muted">我們正向 Google Maps 收集最新資料，稍後會自動生成您的專屬設定。</p>
+          <h2>已收到資料！正在定位您的店家與商圈…</h2>
+          <p>我們正在抓取 Google Maps 最新資訊，稍後會自動帶入設定。</p>
           <div class="transition-meta">
             <span id="transition-counter">3</span>
             <small>秒後帶您進入專屬調校</small>
@@ -72,8 +69,10 @@
     <!-- S2｜問答設定 -->
     <section id="stage-s2" class="stage" data-stage="s2" hidden>
       <div class="stage-panel stage-panel--quiz">
-        <header class="stage-panel__header">
-          <span class="stage-tag">請調適您的專屬引擎</span>
+        <div class="brand-line">
+          <span class="brand-line__text">星級引擎｜脈動智匯</span>
+        </div>
+        <header class="stage-panel__header stage-panel__header--compact">
           <h2>先幫您客製化風格（約 60 秒）</h2>
           <p class="muted">同時我們正在抓取評論與競品資料，完成後會自動帶入結果。</p>
         </header>
@@ -152,10 +151,12 @@
     <!-- S3｜個人化確認卡 -->
     <section id="stage-s3" class="stage" data-stage="s3" hidden>
       <div class="stage-panel stage-panel--summary">
-        <header class="stage-panel__header">
-          <span class="stage-tag">專屬調校完成</span>
-          <h2>設定完成，正在生成專屬報表與品牌頁</h2>
-          <p class="muted">完成後您會看到：① AI 報表摘要 ② 本週三件事 ③ 品牌小站預覽與回覆草稿。</p>
+        <div class="brand-line">
+          <span class="brand-line__text">星級引擎｜脈動智匯</span>
+        </div>
+        <header class="stage-panel__header stage-panel__header--compact">
+          <h2>設定已完成，我們會依照您的偏好產生報告。</h2>
+          <p class="muted">稍後您將收到：差距雷達、本週三件事，以及依語氣調整的三版回覆草稿。</p>
         </header>
 
         <div class="summary-card">
@@ -173,7 +174,10 @@
               <dd id="summary-competitors">系統自動挑選中…</dd>
             </div>
           </dl>
-          <button id="summary-confirm" type="button" class="btn btn--primary">保持這樣，很好</button>
+          <div class="summary-actions">
+            <button id="summary-confirm" type="button" class="btn btn--primary">確認設定，開始分析</button>
+            <button id="summary-back" type="button" class="btn btn--secondary">返回問卷</button>
+          </div>
         </div>
       </div>
 
@@ -191,27 +195,29 @@
     <!-- S4｜分析完成 -->
     <section id="stage-s4" class="stage" data-stage="s4" hidden>
       <div class="stage-panel stage-panel--result">
-        <header class="stage-panel__header">
-          <span class="stage-tag stage-tag--success">S4 · 分析完成</span>
+        <div class="brand-line brand-line--compact">
+          <span class="brand-line__text">星級引擎｜脈動智匯</span>
+        </div>
+        <header class="stage-panel__header stage-panel__header--compact">
           <h2>初檢完成！這是您的 AI 報表預覽</h2>
           <p class="muted">我們已完成差距雷達、三件事與回覆草稿，並為你準備品牌樣本報表，點擊即可查看。</p>
         </header>
 
         <div class="result-grid">
-          <article class="result-card" id="result-radar">
+          <article class="result-card result-card--radar" id="result-radar">
             <h3>差距雷達</h3>
             <p class="muted">星等、評論量與距離差距即時更新</p>
             <ul id="result-radar-list" class="result-list"></ul>
           </article>
 
-          <article class="result-card" id="result-actions">
+          <article class="result-card result-card--actions" id="result-actions">
             <h3>本週三件事</h3>
             <p class="muted">直接複製即可交派團隊執行</p>
             <ul id="result-actions-list" class="result-list"></ul>
             <button id="copy-actions" type="button" class="btn btn--ghost">複製三件事</button>
           </article>
 
-          <article class="result-card" id="result-drafts">
+          <article class="result-card result-card--drafts" id="result-drafts">
             <h3>三版回覆草稿</h3>
             <p class="muted">已套用您的語氣偏好，可一鍵複製</p>
             <div id="result-drafts-list" class="drafts"></div>
@@ -219,8 +225,8 @@
         </div>
 
         <div class="result-actions">
-          <a id="cta-trial" class="btn btn--primary" href="https://line.me/ti/p/@star-up" target="_blank" rel="noopener">開始 7 天體驗</a>
-          <a id="cta-plan" class="btn btn--outline" href="https://chelov134999.app.n8n.cloud/pay/star-guard-4980" target="_blank" rel="noopener">了解 4,980 「當天了」方案</a>
+          <button id="cta-report" type="button" class="btn btn--gradient">了解完整報表</button>
+          <a id="cta-plan" class="btn btn--outline" href="https://chelov134999.app.n8n.cloud/pay/star-guard-4980" target="_blank" rel="noopener">瞭解守護方案</a>
           <button id="return-home" type="button" class="btn btn--ghost">返回主畫面</button>
         </div>
       </div>
