@@ -64,11 +64,9 @@ const els = {
   timeoutBack: document.getElementById('timeout-back'),
   copyActions: document.getElementById('copy-actions'),
   toast: document.getElementById('toast'),
-  transitionFill: document.getElementById('transition-progress-fill'),
-  transitionCountdown: document.getElementById('transition-countdown'),
-  transitionStatus: document.getElementById('transition-status'),
+  transitionBar: document.getElementById('transition-bar'),
+  transitionCounter: document.getElementById('transition-counter'),
   aboutLink: document.getElementById('about-link'),
-  summaryEdit: document.getElementById('summary-edit'),
 };
 
 const state = {
@@ -95,7 +93,7 @@ const state = {
     lastStage: '',
   },
   transition: {
-    frameId: null,
+    countdownId: null,
     timeoutId: null,
   },
   report: null,
@@ -186,33 +184,6 @@ function updateProgressUI(percent, etaSeconds, stageLabel = '') {
   state.progress.percent = safePercent;
 }
 
-function resetTransitionUI() {
-  if (els.transitionFill) {
-    els.transitionFill.style.width = '0%';
-  }
-  if (els.transitionCountdown) {
-    els.transitionCountdown.textContent = '約 3 秒內完成';
-  }
-}
-
-function stopTransitionCountdown() {
-  if (state.transition.frameId) {
-    cancelAnimationFrame(state.transition.frameId);
-    state.transition.frameId = null;
-  }
-  if (state.transition.timeoutId) {
-    clearTimeout(state.transition.timeoutId);
-    state.transition.timeoutId = null;
-  }
-}
-
-function prepareTransitionStage() {
-  if (els.transitionStatus) {
-    els.transitionStatus.textContent = '正在定位您的店家與商圈…';
-  }
-  resetTransitionUI();
-}
-
 function animateFrontProgress(targetPercent, duration = TRANSITION_DURATION_MS) {
   const isStillInFakeZone = state.progress.percent < PROGRESS_FAKE_LIMIT;
   const effectiveTarget = isStillInFakeZone
@@ -277,7 +248,14 @@ function stopProgressTimers() {
     clearInterval(state.progress.messageId);
     state.progress.messageId = null;
   }
-  stopTransitionCountdown();
+  if (state.transition.countdownId) {
+    clearInterval(state.transition.countdownId);
+    state.transition.countdownId = null;
+  }
+  if (state.transition.timeoutId) {
+    clearTimeout(state.transition.timeoutId);
+    state.transition.timeoutId = null;
+  }
 }
 
 async function initLiff() {
@@ -388,7 +366,14 @@ async function handleLeadSubmit(event) {
     state.progress.ninetyReachedAt = 0;
     state.progress.lastStage = 'collecting';
 
-    prepareTransitionStage();
+    if (els.transitionCounter) {
+      els.transitionCounter.textContent = '…';
+    }
+    if (els.transitionBar) {
+      els.transitionBar.style.transition = 'none';
+      els.transitionBar.style.width = '0%';
+    }
+
     setStage('s1');
     animateFrontProgress(PROGRESS_FAKE_LIMIT);
     startMessageTicker();
@@ -401,8 +386,14 @@ async function handleLeadSubmit(event) {
   } catch (error) {
     console.error(error);
     showToast(`送出失敗：${error.message}`);
-    stopTransitionCountdown();
-    resetTransitionUI();
+    if (state.transition.countdownId) {
+      clearInterval(state.transition.countdownId);
+      state.transition.countdownId = null;
+    }
+    if (state.transition.timeoutId) {
+      clearTimeout(state.transition.timeoutId);
+      state.transition.timeoutId = null;
+    }
     if (state.progress.messageId) {
       clearInterval(state.progress.messageId);
       state.progress.messageId = null;
@@ -417,45 +408,48 @@ async function handleLeadSubmit(event) {
 }
 
 function startTransitionToQuiz() {
-  stopTransitionCountdown();
-  const duration = TRANSITION_DURATION_MS;
-  const startAt = performance.now();
+  if (state.transition.countdownId) {
+    clearInterval(state.transition.countdownId);
+    state.transition.countdownId = null;
+  }
+  if (state.transition.timeoutId) {
+    clearTimeout(state.transition.timeoutId);
+    state.transition.timeoutId = null;
+  }
 
-  const updateCountdown = (elapsed) => {
-    const ratio = Math.min(1, elapsed / duration);
-    if (els.transitionFill) {
-      const width = Math.min(100, ratio * 100);
-      els.transitionFill.style.width = `${width}%`;
-    }
-    if (els.transitionCountdown) {
-      const remaining = Math.max(0, duration - elapsed);
-      const seconds = Math.ceil(remaining / 1000);
-      els.transitionCountdown.textContent = seconds > 0
-        ? `約 ${seconds} 秒內完成`
-        : '即將進入設定畫面';
-    }
-  };
+  if (els.transitionBar) {
+    els.transitionBar.style.transition = 'none';
+    els.transitionBar.style.width = '0%';
+    requestAnimationFrame(() => {
+      els.transitionBar.style.transition = 'width 3s ease';
+      els.transitionBar.style.width = '100%';
+    });
+  }
 
-  const tick = (now) => {
-    const elapsed = now - startAt;
-    updateCountdown(elapsed);
-    if (elapsed < duration && state.stage === 's1') {
-      state.transition.frameId = requestAnimationFrame(tick);
-    }
-  };
+  if (els.transitionCounter) {
+    let remaining = 3;
+    els.transitionCounter.textContent = remaining;
+    state.transition.countdownId = setInterval(() => {
+      remaining -= 1;
+      if (remaining <= 0) {
+        clearInterval(state.transition.countdownId);
+        state.transition.countdownId = null;
+        els.transitionCounter.textContent = '0';
+      } else {
+        els.transitionCounter.textContent = remaining;
+      }
+    }, 1000);
+  }
 
-  updateCountdown(0);
-  state.transition.frameId = requestAnimationFrame(tick);
   state.transition.timeoutId = setTimeout(() => {
-    stopTransitionCountdown();
     setStage('s2');
     els.submitBtn.disabled = false;
     els.submitBtn.textContent = '開始 30 秒初檢';
-    updateProgressUI(Math.max(state.progress.frontPercent, PROGRESS_FAKE_LIMIT), null, PROGRESS_TICKS[0].label);
+    updateProgressUI(PROGRESS_FAKE_LIMIT, null, PROGRESS_TICKS[0].label);
     if (els.progressEtaS2) {
       els.progressEtaS2.textContent = PROGRESS_TICKS[0].eta;
     }
-  }, duration);
+  }, TRANSITION_DURATION_MS);
 }
 
 function collectQuizValues() {
@@ -540,13 +534,6 @@ async function submitQuiz(values, skipped = false) {
     updateSummary(values, skipped);
     setStage('s3');
     animateFrontProgress(Math.max(30, state.progress.frontPercent));
-    if (els.summaryConfirm) {
-      els.summaryConfirm.disabled = false;
-      els.summaryConfirm.textContent = '確認設定，開始分析';
-    }
-    if (els.summaryEdit) {
-      els.summaryEdit.disabled = false;
-    }
   } catch (error) {
     console.error(error);
     showToast(`儲存設定失敗：${error.message}`);
@@ -581,34 +568,13 @@ function updateSummary(values, skipped) {
 }
 
 function acknowledgeSummary() {
-  if (els.summaryConfirm?.disabled && state.progress.pollId) {
-    return;
-  }
-  showToast('設定已鎖定，正在建立分析。', 2000);
+  showToast('設定已鎖定，稍待即可收到完整報告。', 2000);
+  // Prevent double submission
   els.summaryConfirm.disabled = true;
-  els.summaryConfirm.textContent = '建立分析中…';
-  if (els.summaryEdit) {
-    els.summaryEdit.disabled = true;
-  }
-  animateFrontProgress(Math.max(60, state.progress.frontPercent));
+  els.summaryConfirm.textContent = '已確認';
   if (!state.progress.pollId) {
     startPolling();
   }
-}
-
-function handleSummaryEdit() {
-  if (state.progress.pollId) {
-    return;
-  }
-  setStage('s2');
-  if (els.summaryConfirm) {
-    els.summaryConfirm.disabled = false;
-    els.summaryConfirm.textContent = '確認設定，開始分析';
-  }
-  if (els.summaryEdit) {
-    els.summaryEdit.disabled = false;
-  }
-  showToast('已返回問卷，可再微調設定。', 1800);
 }
 
 function startPolling() {
@@ -659,12 +625,7 @@ function handleStatusResponse(payload) {
   };
 
   if (stage === 'collecting' && state.stage === 's1') {
-    stopTransitionCountdown();
     setStage('s2');
-    if (els.submitBtn) {
-      els.submitBtn.disabled = false;
-      els.submitBtn.textContent = '開始 30 秒初檢';
-    }
   }
 
   if (typeof percent === 'number') {
@@ -843,7 +804,6 @@ async function handleWeeklyDraft() {
 
 function resetFlow() {
   stopProgressTimers();
-  stopTransitionCountdown();
   state.stage = 's0';
   state.leadId = '';
   state.leadPayload = null;
@@ -862,8 +822,6 @@ function resetFlow() {
   };
   state.report = null;
 
-  resetTransitionUI();
-
   if (els.leadForm) {
     els.leadForm.reset();
   }
@@ -873,14 +831,7 @@ function resetFlow() {
   }
   if (els.summaryConfirm) {
     els.summaryConfirm.disabled = false;
-    els.summaryConfirm.textContent = '確認設定，開始分析';
-  }
-  if (els.summaryEdit) {
-    els.summaryEdit.disabled = false;
-  }
-  if (els.submitBtn) {
-    els.submitBtn.disabled = false;
-    els.submitBtn.textContent = '開始 30 秒初檢';
+    els.summaryConfirm.textContent = '保持這樣，很好';
   }
   updateProgressUI(0);
   setStage('s0');
@@ -900,7 +851,6 @@ function attachEventListeners() {
   els.quizForm?.addEventListener('submit', handleQuizSubmit);
   els.quizSkip?.addEventListener('click', handleQuizSkip);
   els.summaryConfirm?.addEventListener('click', acknowledgeSummary);
-  els.summaryEdit?.addEventListener('click', handleSummaryEdit);
   els.returnHome?.addEventListener('click', resetFlow);
   els.timeoutBack?.addEventListener('click', resetFlow);
   els.timeoutWeekly?.addEventListener('click', handleWeeklyDraft);
