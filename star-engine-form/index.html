@@ -21,10 +21,9 @@
     <!-- S0｜四格輸入 -->
     <section id="stage-s0" class="stage stage--active" data-stage="s0">
       <div class="stage-panel stage-panel--form">
-        <header class="stage-panel__header">
-          <span class="stage-tag">30 秒智能初檢</span>
-          <h1>輸入四格資訊，30 秒產出 AI 初檢與品牌小站</h1>
-          <p>填上城市、路段、門牌與店名，星級引擎會即時掃描近 7 天評論、競品差距，並為你預備專屬樣本報表與品牌小站預覽。</p>
+        <header class="stage-panel__header stage-panel__header--compact">
+          <span class="stage-brandline">S0 · 星級引擎智能初檢</span>
+          <h1>輸入四格資訊，立即啟動智慧初檢</h1>
         </header>
 
         <form id="lead-form" class="stage-form" autocomplete="off">
@@ -47,7 +46,12 @@
             </label>
           </div>
 
-          <button id="submit-btn" type="submit" class="btn btn--primary btn--lg">啟動 AI 初檢</button>
+          <button id="submit-btn" type="submit" class="btn btn--primary btn--lg">開始 30 秒初檢</button>
+          <div class="form-footnote">
+            <p class="form-footnote__helper">請一次填妥城市、路段、門牌與店名，AI 會同步檢索商圈。</p>
+            <p class="form-footnote__text">不讀取帳密、不代發回覆。</p>
+            <span class="badge badge--outline">14 天內可申請全額退費</span>
+          </div>
         </form>
       </div>
     </section>
@@ -55,15 +59,20 @@
     <!-- S1｜三秒轉場 -->
     <section id="stage-s1" class="stage" data-stage="s1" hidden>
       <div class="stage-panel stage-panel--transition">
-        <div class="transition-visual">
-          <div class="transition-bar" id="transition-bar"></div>
-        </div>
-        <div class="transition-copy">
+        <header class="stage-panel__header stage-panel__header--compact transition-header">
+          <span class="stage-brandline">S1 · 正在定位</span>
           <h2>已收到！正在定位您的店家與商圈…</h2>
-          <p class="muted">我們正向 Google Maps 收集最新資料，稍後會自動生成您的專屬設定。</p>
-          <div class="transition-meta">
-            <span id="transition-counter">3</span>
-            <small>秒後帶您進入專屬調校</small>
+          <p class="muted">我們正同步向 Google Maps 擷取最新資料，稍後會自動帶入您的專屬設定。</p>
+        </header>
+        <div class="transition-status">
+          <div class="transition-status__meta">
+            <span id="transition-status" class="transition-status__label">正在建立專屬設定</span>
+            <span id="transition-countdown" class="transition-status__countdown">約 3 秒內完成</span>
+          </div>
+          <div class="transition-progress">
+            <div class="transition-progress__track">
+              <div class="transition-progress__fill" id="transition-progress-fill"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -72,8 +81,8 @@
     <!-- S2｜問答設定 -->
     <section id="stage-s2" class="stage" data-stage="s2" hidden>
       <div class="stage-panel stage-panel--quiz">
-        <header class="stage-panel__header">
-          <span class="stage-tag">請調適您的專屬引擎</span>
+        <header class="stage-panel__header stage-panel__header--compact">
+          <span class="stage-brandline">S2 · 風格設定</span>
           <h2>先幫您客製化風格（約 60 秒）</h2>
           <p class="muted">同時我們正在抓取評論與競品資料，完成後會自動帶入結果。</p>
         </header>
@@ -81,42 +90,90 @@
         <form id="quiz-form" class="quiz-form">
           <fieldset class="quiz-group">
             <legend>Q1. 您最想先解決哪一件事？</legend>
-            <label class="option option--radio">
+            <label class="quiz-option quiz-option--radio">
               <input type="radio" name="quiz-goal" value="instant_lowstar" required />
-              <span class="option__label">立即掌握 1–3★ 低星</span>
+              <span class="quiz-option__inner">
+                <span class="quiz-option__icon" aria-hidden="true">01</span>
+                <span class="quiz-option__text">
+                  <span class="quiz-option__title">立即掌握 1–3★ 低星</span>
+                  <span class="quiz-option__desc">即時撈取近 7 天低星評論與關鍵字提醒</span>
+                </span>
+              </span>
             </label>
-            <label class="option option--radio">
+            <label class="quiz-option quiz-option--radio">
               <input type="radio" name="quiz-goal" value="save_time" />
-              <span class="option__label">省時，一鍵回覆草稿</span>
+              <span class="quiz-option__inner">
+                <span class="quiz-option__icon" aria-hidden="true">02</span>
+                <span class="quiz-option__text">
+                  <span class="quiz-option__title">省時，一鍵回覆草稿</span>
+                  <span class="quiz-option__desc">取得三版回覆草稿，直接貼到 LINE 官方帳號</span>
+                </span>
+              </span>
             </label>
-            <label class="option option--radio">
+            <label class="quiz-option quiz-option--radio">
               <input type="radio" name="quiz-goal" value="beat_competitors" />
-              <span class="option__label">看我與附近對手差距</span>
+              <span class="quiz-option__inner">
+                <span class="quiz-option__icon" aria-hidden="true">03</span>
+                <span class="quiz-option__text">
+                  <span class="quiz-option__title">看我與附近對手差距</span>
+                  <span class="quiz-option__desc">即時比較星等、評論量與距離差距</span>
+                </span>
+              </span>
             </label>
-            <label class="option option--radio">
+            <label class="quiz-option quiz-option--radio">
               <input type="radio" name="quiz-goal" value="weekly_focus" />
-              <span class="option__label">幫我列出本週三件事</span>
+              <span class="quiz-option__inner">
+                <span class="quiz-option__icon" aria-hidden="true">04</span>
+                <span class="quiz-option__text">
+                  <span class="quiz-option__title">幫我列出本週三件事</span>
+                  <span class="quiz-option__desc">整理本週重點任務，方便交派團隊</span>
+                </span>
+              </span>
             </label>
           </fieldset>
 
           <fieldset class="quiz-group">
-            <legend>Q2. 希望回覆語氣？（可複選 1–2 項）</legend>
+            <legend>Q2. 回覆語氣偏好（可複選 1–2 項）</legend>
             <div class="quiz-columns">
-              <label class="option option--checkbox">
+              <label class="quiz-option quiz-option--checkbox">
                 <input type="checkbox" name="quiz-tone" value="soothing" />
-                <span class="option__label">溫和安撫</span>
+                <span class="quiz-option__inner">
+                  <span class="quiz-option__icon" aria-hidden="true">A</span>
+                  <span class="quiz-option__text">
+                    <span class="quiz-option__title">溫和安撫</span>
+                    <span class="quiz-option__desc">柔性語氣、強調傾聽與安慰</span>
+                  </span>
+                </span>
               </label>
-              <label class="option option--checkbox">
+              <label class="quiz-option quiz-option--checkbox">
                 <input type="checkbox" name="quiz-tone" value="direct_fix" />
-                <span class="option__label">直接解決</span>
+                <span class="quiz-option__inner">
+                  <span class="quiz-option__icon" aria-hidden="true">B</span>
+                  <span class="quiz-option__text">
+                    <span class="quiz-option__title">直接解決</span>
+                    <span class="quiz-option__desc">聚焦補救步驟，快速安撫負評</span>
+                  </span>
+                </span>
               </label>
-              <label class="option option--checkbox">
+              <label class="quiz-option quiz-option--checkbox">
                 <input type="checkbox" name="quiz-tone" value="authority" />
-                <span class="option__label">專業權威</span>
+                <span class="quiz-option__inner">
+                  <span class="quiz-option__icon" aria-hidden="true">C</span>
+                  <span class="quiz-option__text">
+                    <span class="quiz-option__title">專業權威</span>
+                    <span class="quiz-option__desc">以專業角度說明標準流程與品質</span>
+                  </span>
+                </span>
               </label>
-              <label class="option option--checkbox">
+              <label class="quiz-option quiz-option--checkbox">
                 <input type="checkbox" name="quiz-tone" value="apology" />
-                <span class="option__label">道歉＋補救</span>
+                <span class="quiz-option__inner">
+                  <span class="quiz-option__icon" aria-hidden="true">D</span>
+                  <span class="quiz-option__text">
+                    <span class="quiz-option__title">道歉＋補救</span>
+                    <span class="quiz-option__desc">誠懇致歉並附上補償方案</span>
+                  </span>
+                </span>
               </label>
             </div>
             <p class="helper-text">若不確定，可稍後再答，系統預設「直接解決＋溫和安撫」。</p>
@@ -144,7 +201,7 @@
         </div>
         <div class="progress-dock__meta">
           <span id="progress-label">資料收集中… 進度 0%</span>
-          <span id="progress-eta" class="muted">正在抓取評論與競品資料</span>
+          <span id="progress-eta" class="muted">預估完成時間 60 秒內</span>
         </div>
       </div>
     </section>
@@ -152,10 +209,10 @@
     <!-- S3｜個人化確認卡 -->
     <section id="stage-s3" class="stage" data-stage="s3" hidden>
       <div class="stage-panel stage-panel--summary">
-        <header class="stage-panel__header">
-          <span class="stage-tag">專屬調校完成</span>
-          <h2>設定完成，正在生成專屬報表與品牌頁</h2>
-          <p class="muted">完成後您會看到：① AI 報表摘要 ② 本週三件事 ③ 品牌小站預覽與回覆草稿。</p>
+        <header class="stage-panel__header stage-panel__header--compact">
+          <span class="stage-brandline">S3 · 個人化設定完成</span>
+          <h2>已設定完成，以下內容將為您專屬生成</h2>
+          <p class="muted">完成後您會看到：① 競品差距雷達 ② 本週三件事 ③ 三版回覆草稿。</p>
         </header>
 
         <div class="summary-card">
@@ -173,7 +230,10 @@
               <dd id="summary-competitors">系統自動挑選中…</dd>
             </div>
           </dl>
-          <button id="summary-confirm" type="button" class="btn btn--primary">保持這樣，很好</button>
+          <div class="summary-actions">
+            <button id="summary-confirm" type="button" class="btn btn--primary">確認設定，開始分析</button>
+            <button id="summary-edit" type="button" class="btn btn--ghost">返回問卷</button>
+          </div>
         </div>
       </div>
 
@@ -191,10 +251,10 @@
     <!-- S4｜分析完成 -->
     <section id="stage-s4" class="stage" data-stage="s4" hidden>
       <div class="stage-panel stage-panel--result">
-        <header class="stage-panel__header">
-          <span class="stage-tag stage-tag--success">S4 · 分析完成</span>
-          <h2>初檢完成！這是您的 AI 報表預覽</h2>
-          <p class="muted">我們已完成差距雷達、三件事與回覆草稿，並為你準備品牌樣本報表，點擊即可查看。</p>
+        <header class="stage-panel__header stage-panel__header--compact">
+          <span class="stage-brandline stage-brandline--success">S4 · 分析完成</span>
+          <h2>分析完成！這是您的智能初檢</h2>
+          <p class="muted">根據您的設定，我們已生成差距雷達、三件事與三版草稿，點擊即可操作。</p>
         </header>
 
         <div class="result-grid">
@@ -218,11 +278,20 @@
           </article>
         </div>
 
-        <div class="result-actions">
-          <a id="cta-trial" class="btn btn--primary" href="https://line.me/ti/p/@star-up" target="_blank" rel="noopener">開始 7 天體驗</a>
-          <a id="cta-plan" class="btn btn--outline" href="https://chelov134999.app.n8n.cloud/pay/star-guard-4980" target="_blank" rel="noopener">了解 4,980 「當天了」方案</a>
-          <button id="return-home" type="button" class="btn btn--ghost">返回主畫面</button>
+        <div class="result-cta">
+          <div class="result-cta__icon" aria-hidden="true">
+            <span class="result-cta__glyph">AI</span>
+          </div>
+          <div class="result-cta__content">
+            <h3>下一步：啟動守護方案</h3>
+            <p class="muted">體驗版立即啟用即時監控，進階方案提供專屬顧問與每日追蹤，推薦搭配本次初檢結果使用。</p>
+            <div class="result-cta__actions">
+              <a id="cta-trial" class="btn btn--primary-gradient" href="https://line.me/ti/p/@star-up" target="_blank" rel="noopener">開始 7 天體驗</a>
+              <a id="cta-plan" class="btn btn--secondary-outline" href="https://chelov134999.app.n8n.cloud/pay/star-guard-4980" target="_blank" rel="noopener">了解 4,980 「當天了」方案</a>
+            </div>
+          </div>
         </div>
+        <button id="return-home" type="button" class="btn btn--ghost result-return">返回主畫面</button>
       </div>
     </section>
 
