@@ -10,95 +10,103 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body class="page--info">
-  <main class="info-shell">
-    <div class="brand-line" role="presentation">
-      <img class="brand-line__logo" src="logo.png" alt="星級引擎 logo" width="22" height="22" />
-      <span class="brand-line__text">星級引擎｜脈動智匯</span>
-    </div>
-
-    <header class="info-hero">
-      <p class="info-hero__eyebrow">30 秒智能初檢樣本</p>
-      <h1>你 30 秒後會拿到的初檢結果</h1>
-      <p>我們已準備好替「星河咖啡 · 信義路四段」整理最新評論、競品雷達與 AI 草稿，以下為真實結構的示意數據。</p>
-    </header>
-
-    <section class="report-card">
-      <h2 class="report-card__title">關鍵指標概覽</h2>
-      <ul class="report-metrics">
-        <li class="report-metric">
-          <span class="report-metric__label">Google 評分</span>
-          <span class="report-metric__value">3.8 ★</span>
-          <span class="report-metric__note">商圈平均 4.3 ★｜落後 0.5 ★，多 18 則低星未回覆。</span>
-        </li>
-        <li class="report-metric">
-          <span class="report-metric__label">近 7 天低星</span>
-          <span class="report-metric__value">5 則</span>
-          <span class="report-metric__note">集中在外送包裝與等候 20 分鐘以上的抱怨。</span>
-        </li>
-        <li class="report-metric">
-          <span class="report-metric__label">評論量差距</span>
-          <span class="report-metric__value">-142 則</span>
-          <span class="report-metric__note">領先者為「星辰咖啡信義店」，建議 30 天補量 60 則以上。</span>
-        </li>
-        <li class="report-metric">
-          <span class="report-metric__label">預估流失風險</span>
-          <span class="report-metric__value">NT$34,500 / 月</span>
-          <span class="report-metric__note">若評分跌破 3.5 ★，搜尋曝光可能再減少 28%。</span>
-        </li>
-      </ul>
-    </section>
-
-    <section class="report-card">
-      <h2 class="report-card__title">本週三件事（範例）</h2>
-      <ul class="report-list">
-        <li>外送通路加上「兩層保溫包＋15 分鐘內通知」，由你指定的值班副店長負責追蹤。</li>
-        <li>週五晚高峰安排店長巡檢並錄製 30 秒短影音，當天上傳至 Google 貼文強化亮點。</li>
-        <li>設置櫃檯 QR Code 與回饋說明卡，目標 7 天累積 20 則 4★ 以上新評論。</li>
-      </ul>
-      <div class="report-callout">
-        <strong>提醒你把節奏抓在 48 小時內</strong>
-        我們會在 LINE 上提醒未完成的任務，並同步更新週報，讓你確認團隊是否落實。
+  <div class="info-wrapper">
+    <main class="info-shell">
+      <div class="brand-line" role="presentation">
+        <img class="brand-line__logo" src="logo.png" alt="星級引擎 logo" width="22" height="22" />
+        <span class="brand-line__text">星級引擎｜脈動智匯</span>
       </div>
-    </section>
 
-    <section class="report-card">
-      <h2 class="report-card__title">AI 回覆草稿示例</h2>
-      <div class="report-callout">
-        <strong>危機點 #1｜服務體驗</strong>
-        「服務生態度冷淡，排隊很久還出錯飲料。」<br />
-        您好，我是門市經理，收到你對等待與出錯的提醒後已即刻補足尖峰人力。這杯飲料我們已為你保留在信義店，並附上 120 元折扣券，歡迎 7 天內帶著這則訊息回來由我親自招待。
-      </div>
-      <div class="report-callout">
-        <strong>危機點 #2｜外送品質</strong>
-        感謝告訴我們餐點到府時溫度不足。我們新增雙層保溫袋與出餐三分鐘內通知，並已為你重新安排一份星河限定套餐配送，補償券將透過 LINE 官方帳號送達。
-      </div>
-    </section>
+      <section class="info-hero-card">
+        <h2>打開後你同時擁有雙層前後台</h2>
+        <p>對外：AI 生成的品牌小站與案例矩陣，讓 Google 與新顧客第一眼就看見專業。對內：登入後的多租戶儀表板，把危機指標、草稿與任務集中在同一個頁面。</p>
+      </section>
 
-    <div class="info-steps">
-      <h3 class="info-steps__title">流程指引</h3>
-      <div class="info-steps__list">
-        <div class="info-steps__item">
-          <strong>1. 送出 30 秒初檢</strong>
-          <span>輸入地址與店名，我們立即定位商圈並鎖定你的商家檔案。</span>
+      <header class="info-hero">
+        <p class="info-hero__eyebrow">30 秒智能初檢樣本</p>
+        <h1>你 30 秒後會拿到的初檢結果</h1>
+        <p>我們已準備好替「星河咖啡 · 信義路四段」整理最新評論、競品雷達與 AI 草稿，以下為真實結構的示意數據。</p>
+      </header>
+
+      <section class="report-card report-card--primary">
+        <h2 class="report-card__title">關鍵指標概覽</h2>
+        <ul class="report-metrics">
+          <li class="report-metric">
+            <span class="report-metric__label">Google 評分</span>
+            <span class="report-metric__value">3.8 ★</span>
+            <span class="report-metric__note">商圈平均 4.3 ★｜落後 0.5 ★，多 18 則低星未回覆。</span>
+          </li>
+          <li class="report-metric">
+            <span class="report-metric__label">近 7 天低星</span>
+            <span class="report-metric__value">5 則</span>
+            <span class="report-metric__note">集中在外送包裝與等候 20 分鐘以上的抱怨。</span>
+          </li>
+          <li class="report-metric">
+            <span class="report-metric__label">評論量差距</span>
+            <span class="report-metric__value">-142 則</span>
+            <span class="report-metric__note">領先者為「星辰咖啡信義店」，建議 30 天補量 60 則以上。</span>
+          </li>
+          <li class="report-metric">
+            <span class="report-metric__label">預估流失風險</span>
+            <span class="report-metric__value">NT$34,500 / 月</span>
+            <span class="report-metric__note">若評分跌破 3.5 ★，搜尋曝光可能再減少 28%。</span>
+          </li>
+        </ul>
+      </section>
+
+      <section class="report-card">
+        <h2 class="report-card__title">本週三件事（範例）</h2>
+        <ul class="report-list">
+          <li>外送通路加上「兩層保溫包＋15 分鐘內通知」，由你指定的值班副店長負責追蹤。</li>
+          <li>週五晚高峰安排店長巡檢並錄製 30 秒短影音，當天上傳至 Google 貼文強化亮點。</li>
+          <li>設置櫃檯 QR Code 與回饋說明卡，目標 7 天累積 20 則 4★ 以上新評論。</li>
+        </ul>
+        <div class="report-callout">
+          <strong>提醒你把節奏抓在 48 小時內</strong>
+          我們會在 LINE 上提醒未完成的任務，並同步更新週報，讓你確認團隊是否落實。
         </div>
-        <div class="info-steps__item">
-          <strong>2. 3 秒轉場進入問卷</strong>
-          <span>設定語氣與優先要務，AI 會同步整理競品與評論。</span>
+      </section>
+
+      <section class="report-card">
+        <h2 class="report-card__title">AI 回覆草稿示例</h2>
+        <div class="report-callout">
+          <strong>危機點 #1｜服務體驗</strong>
+          「服務生態度冷淡，排隊很久還出錯飲料。」<br />
+          您好，我是門市經理，收到你對等待與出錯的提醒後已即刻補足尖峰人力。這杯飲料我們已為你保留在信義店，並附上 120 元折扣券，歡迎 7 天內帶著這則訊息回來由我親自招待。
         </div>
-        <div class="info-steps__item">
-          <strong>3. 取得專屬報表與草稿</strong>
-          <span>完成設定後，30 秒內把關鍵指標、三件事與回覆草稿送到你的 LINE。</span>
+        <div class="report-callout">
+          <strong>危機點 #2｜外送品質</strong>
+          感謝告訴我們餐點到府時溫度不足。我們新增雙層保溫袋與出餐三分鐘內通知，並已為你重新安排一份星河限定套餐配送，補償券將透過 LINE 官方帳號送達。
+        </div>
+      </section>
+
+      <div class="info-steps">
+        <p class="info-steps__intro">開啟守護後，這份雙層前後台會這樣陪你運作：</p>
+        <h3 class="info-steps__title">流程指引</h3>
+        <div class="info-steps__list">
+          <div class="info-steps__item">
+            <strong>1. 送出 30 秒初檢</strong>
+            <span>輸入地址與店名，我們立即定位商圈並鎖定你的商家檔案。</span>
+          </div>
+          <div class="info-steps__item">
+            <strong>2. 3 秒轉場進入問卷</strong>
+            <span>設定語氣與優先要務，AI 會同步整理競品與評論。</span>
+          </div>
+          <div class="info-steps__item">
+            <strong>3. 取得專屬報表與草稿</strong>
+            <span>完成設定後，30 秒內把關鍵指標、三件事與回覆草稿送到你的 LINE。</span>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="info-cta">
-      <a class="btn btn--gradient" href="plans.html">查看守護方案</a>
-      <a id="sample-checkout" class="btn btn--outline" href="https://chelov134999.app.n8n.cloud/pay/star-guard-4980" target="_blank" rel="noopener">直接預約守護</a>
-    </div>
+      <div class="info-cta">
+        <a class="btn btn--gradient" href="plans.html">查看守護方案</a>
+        <a id="sample-checkout" class="btn btn--outline" href="https://chelov134999.app.n8n.cloud/pay/star-guard-4980" target="_blank" rel="noopener">直接預約守護</a>
+      </div>
 
-    <p class="report-note">完整報表會在授權後提供 PDF 與 LINE Flex 卡片，也能匯出 CSV 交給你的 CRM 或客服系統。</p>
-  </main>
+      <p class="report-note">完整報表會在授權後提供 PDF 與 LINE Flex 卡片，也能匯出 CSV 交給你的 CRM 或客服系統。</p>
+    </main>
+  </div>
 
   <script src="config.runtime.js"></script>
   <script src="config.js"></script>

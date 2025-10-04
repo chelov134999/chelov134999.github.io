@@ -865,6 +865,14 @@ body.page--info {
   padding: clamp(32px, 7vw, 72px) clamp(20px, 6vw, 60px) clamp(56px, 9vw, 96px);
 }
 
+.info-wrapper {
+  width: min(980px, 100%);
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 32px;
+  box-shadow: 0 32px 70px -50px rgba(15, 23, 42, 0.42);
+  padding: clamp(28px, 5vw, 44px);
+}
+
 .info-shell {
   width: min(920px, 100%);
   background: rgba(255, 255, 255, 0.96);
@@ -906,6 +914,31 @@ body.page--info {
   color: var(--muted);
   font-size: 1.05rem;
   line-height: 1.8;
+}
+
+.info-hero-card {
+  display: grid;
+  gap: 8px;
+  padding: clamp(22px, 4vw, 30px);
+  border-radius: 24px;
+  background: linear-gradient(145deg, #e9f1ff 0%, #f2f7ff 100%);
+  box-shadow: 0 16px 40px -32px rgba(59, 94, 161, 0.5);
+  color: var(--text);
+}
+
+.info-hero-card h2,
+.info-hero-card strong {
+  margin: 0;
+  font-size: clamp(1.18rem, 3vw, 1.45rem);
+  color: var(--primary);
+}
+
+.info-hero-card p,
+.info-hero-card span {
+  margin: 0;
+  color: rgba(15, 23, 42, 0.75);
+  font-size: 1rem;
+  line-height: 1.7;
 }
 
 .info-section {
@@ -965,6 +998,13 @@ body.page--info {
   gap: 16px;
 }
 
+.info-steps__intro {
+  margin: 0;
+  font-size: 1rem;
+  color: rgba(15, 23, 42, 0.72);
+  line-height: 1.7;
+}
+
 .info-steps__title {
   margin: 0;
   font-size: 1.18rem;
@@ -1008,6 +1048,12 @@ body.page--info {
   display: grid;
   gap: 18px;
   box-shadow: 0 20px 40px -32px rgba(15, 23, 42, 0.24);
+}
+
+.report-card--primary {
+  background: #f3f6ff;
+  border: 1px solid rgba(29, 78, 216, 0.18);
+  border-radius: 24px;
 }
 
 .report-card__title {
@@ -1080,6 +1126,14 @@ body.page--info {
   color: var(--muted);
 }
 
+.plan-wrapper {
+  background: linear-gradient(140deg, #eef2ff 0%, #f9f9ff 100%);
+  border-radius: 28px;
+  padding: clamp(28px, 5vw, 36px);
+  display: grid;
+  gap: clamp(24px, 5vw, 32px);
+}
+
 .plan-grid {
   display: grid;
   gap: 20px;
@@ -1114,6 +1168,12 @@ body.page--info {
   margin: 0;
   font-size: 1rem;
   color: rgba(15, 23, 42, 0.72);
+}
+
+.plan-card__microcopy {
+  font-size: 0.95rem;
+  color: rgba(15, 23, 42, 0.72);
+  font-weight: 500;
 }
 
 .plan-card__price {
@@ -1154,6 +1214,14 @@ body.page--info {
 }
 
 @media (max-width: 768px) {
+  .info-wrapper {
+    padding: 24px;
+  }
+
+  .plan-wrapper {
+    padding: 24px;
+  }
+
   .plan-grid {
     grid-template-columns: 1fr;
   }
