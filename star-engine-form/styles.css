@@ -84,18 +84,28 @@ body {
 .brand-line {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.75rem;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.78rem;
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--primary);
-  margin-bottom: 16px;
+  margin: 0 auto 14px;
 }
 
 .brand-line--compact {
   font-size: 0.7rem;
-  opacity: 0.9;
+  opacity: 0.92;
+}
+
+.brand-line__logo {
+  width: 22px;
+  height: 22px;
+}
+
+.brand-line__text {
+  white-space: nowrap;
 }
 
 .transition-visual {
@@ -186,6 +196,16 @@ body {
   font-size: 1.05rem;
 }
 
+.stage-panel__header--minimal {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.stage-panel__header--minimal .stage-tag {
+  margin: 0;
+}
+
 .stage-panel__header--compact {
   gap: 12px;
 }
@@ -219,6 +239,12 @@ body {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--primary);
+}
+
+.stage-tag--soft {
+  background: rgba(29, 78, 216, 0.12);
+  border: 1px solid rgba(29, 78, 216, 0.24);
+  letter-spacing: 0.14em;
 }
 
 .stage-tag--success {
