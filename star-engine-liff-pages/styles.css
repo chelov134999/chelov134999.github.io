@@ -1136,7 +1136,7 @@ body.page--info {
 
 .plan-grid {
   display: grid;
-  gap: 20px;
+  gap: clamp(16px, 3vw, 24px);
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -1170,6 +1170,13 @@ body.page--info {
   color: rgba(15, 23, 42, 0.72);
 }
 
+.plan-card__original {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.9rem;
+  color: rgba(15, 23, 42, 0.55);
+}
+
 .plan-card__microcopy {
   font-size: 0.95rem;
   color: rgba(15, 23, 42, 0.72);
@@ -1185,9 +1192,29 @@ body.page--info {
 
 .plan-card__benefits {
   margin: 0;
-  padding-left: 22px;
+  padding: 0;
   color: var(--text);
-  line-height: 1.8;
+  line-height: 1.7;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.plan-card__benefits li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  flex: 1 1 auto;
+}
+
+.plan-card__benefits li::before {
+  content: '';
+  flex: 0 0 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(29, 78, 216, 0.6), rgba(59, 130, 246, 0.6));
+  margin-top: 6px;
+  box-shadow: 0 6px 12px -8px rgba(29, 78, 216, 0.6);
 }
 
 .plan-card__proof {
@@ -1205,6 +1232,12 @@ body.page--info {
 .plan-card__cta-note {
   font-size: 0.9rem;
   color: rgba(15, 23, 42, 0.72);
+}
+
+.plan-card__footnote {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  color: rgba(15, 23, 42, 0.6);
 }
 
 .info-footer {
