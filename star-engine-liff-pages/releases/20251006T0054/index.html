@@ -253,12 +253,17 @@
             <div id="result-drafts-list" class="drafts"></div>
           </article>
         </div>
-
-        <div class="result-actions">
-          <a id="cta-plan" class="btn btn--gradient" href="plans.html?v=20251006T0054" target="_blank" rel="noopener">開啟 AI 守護方案</a>
-          <button id="cta-secondary" type="button" class="btn btn--outline">看看我能挽回多少營收</button>
-          <button id="cta-report" type="button" class="btn btn--ghost">查看完整報表</button>
-          <button id="return-home" type="button" class="btn btn--ghost">返回主畫面</button>
+        <div class="result-cta">
+          <div class="result-cta__copy">
+            <h3>下一步：啟動守護方案</h3>
+            <p class="muted">體驗版立即啟用即時監控，進階方案提供專屬顧問與每日追蹤，建議搭配本次初檢結果使用。</p>
+          </div>
+          <div class="result-cta__actions">
+            <a id="cta-plan" class="btn btn--primary" href="plans.html?v=20251006T0054" target="_blank" rel="noopener">開啟 AI 守護方案</a>
+            <button id="cta-secondary" type="button" class="btn btn--outline">看看我能挽回多少營收</button>
+            <button id="cta-report" type="button" class="btn btn--ghost">查看完整報表</button>
+            <button id="return-home" type="button" class="btn btn--ghost">返回主畫面</button>
+          </div>
         </div>
       </div>
     </section>
@@ -280,7 +285,10 @@
         <div class="timeout-actions">
           <a id="timeout-sample" class="btn btn--primary" href="sample-report.html?v=20251006T0054" target="_blank" rel="noopener">查看樣本報表</a>
           <button id="timeout-weekly" type="button" class="btn btn--outline">先拿本週三件事（試算版）</button>
-          <button id="timeout-report" type="button" class="btn btn--ghost" hidden>回到完整報表</button>
+          <button id="timeout-report" type="button" class="btn btn--ghost timeout-report" hidden>
+            <span class="btn__icon" aria-hidden="true">⚡</span>
+            <span class="btn__label">查看完整報表</span>
+          </button>
         </div>
         <p id="timeout-countdown" class="timeout-countdown" hidden></p>
         <button id="timeout-back" type="button" class="btn btn--ghost">返回主畫面</button>

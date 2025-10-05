@@ -230,6 +230,17 @@ function buildUrlWithParams(baseUrl, params = {}) {
   }
 }
 
+function extractTokenFromUrl(value) {
+  if (!value) return '';
+  try {
+    const url = new URL(value, window.location.origin);
+    return url.searchParams.get('token') || '';
+  } catch (error) {
+    console.warn('[url] token parse failed', error);
+    return '';
+  }
+}
+
 function generateLeadId() {
   const now = new Date();
   const pad = (value) => String(value).padStart(2, '0');
@@ -456,7 +467,9 @@ function updateTimeoutUI() {
   const hasDataforseoIssue = Boolean(flags.dataforseo_missing) || warnings.includes('dataforseo_missing');
   els.timeoutNote.textContent = hasDataforseoIssue ? DATAFORSEO_TIMEOUT_NOTE : DEFAULT_TIMEOUT_NOTE;
   if (els.timeoutReport) {
-    els.timeoutReport.hidden = !hasDataforseoIssue;
+    const allowReport = Boolean(state.reportPageUrl);
+    els.timeoutReport.hidden = !hasDataforseoIssue || !allowReport;
+    els.timeoutReport.disabled = !allowReport;
   }
 }
 
@@ -1023,20 +1036,26 @@ function handleStatusResponse(payload) {
     animateFrontProgress(85, 2000);
   }
 
+  const enrichedContext = {
+    warnings,
+    flags,
+    report_url: payload.report_url || payload.report?.report_url || state.reportPageUrl,
+  };
+
   if (isComplete) {
     updateProgressUI(100, 0, stageHints.ready);
-    handleAnalysisCompleted({ warnings, flags });
+    handleAnalysisCompleted(enrichedContext);
     return;
   }
 
   if (stage === 'ready') {
     updateProgressUI(100, 0, stageHints.ready);
-    handleAnalysisCompleted({ warnings, flags });
+    handleAnalysisCompleted(enrichedContext);
   } else if (stage === 'scheduled' || stage === 'timeout') {
-    triggerTimeout({ warnings, flags });
+    triggerTimeout(enrichedContext);
   } else if (stage === 'failed' || statusValue.toLowerCase() === 'failed') {
     showToast('分析失敗，請稍後再試或聯絡支援。');
-    triggerTimeout({ warnings, flags });
+    triggerTimeout(enrichedContext);
   }
 }
 
@@ -1052,6 +1071,13 @@ function renderAnalysisReport(context = {}) {
   const flags = context.flags || report.flags || {};
 
   state.latestWarnings = warnings || [];
+  if (context.report_url) {
+    state.reportPageUrl = context.report_url;
+    const extractedToken = extractTokenFromUrl(context.report_url);
+    if (extractedToken) {
+      state.reportToken = extractedToken;
+    }
+  }
   state.timeoutContext = {};
   updateTimeoutUI();
   stopAnalysisCountdown();
@@ -1181,11 +1207,22 @@ function renderAnalysisReport(context = {}) {
     lead_id: state.leadId || '',
     template_id: state.templateId || 'unknown',
   });
-  state.reportPageUrl = buildUrlWithParams(reportUrl, {
-    token: state.reportToken || report.token || '',
-    lead_id: state.leadId || '',
-    ts: Date.now(),
-  });
+
+  if (!context.report_url) {
+    const token = state.reportToken || report.token || '';
+    state.reportPageUrl = buildUrlWithParams(reportUrl, {
+      token,
+      lead_id: state.leadId || '',
+      ts: Date.now(),
+    });
+  }
+
+  if (!state.reportPageUrl && reportUrl) {
+    state.reportPageUrl = buildUrlWithParams(reportUrl, {
+      lead_id: state.leadId || '',
+      ts: Date.now(),
+    });
+  }
 
   if (els.ctaPlan) {
     els.ctaPlan.href = state.planUrl;
@@ -1199,6 +1236,7 @@ function renderAnalysisReport(context = {}) {
     template_id: state.templateId,
   });
 
+  updateProgressStatus(ANALYSIS_STATUS_LABELS.ready || DEFAULT_STATUS_LABEL);
   setStage('s4');
 }
 
@@ -1216,6 +1254,15 @@ function triggerTimeout(context = {}) {
     flags: mergedFlags,
     warnings: mergedWarnings,
   };
+
+  if (context.report_url) {
+    state.reportPageUrl = context.report_url;
+    const extractedToken = extractTokenFromUrl(context.report_url);
+    if (extractedToken) {
+      state.reportToken = extractedToken;
+    }
+  }
+
   updateTimeoutUI();
 
   if (wasTimedOut) {
@@ -1230,6 +1277,7 @@ function triggerTimeout(context = {}) {
   stopAnalysisCountdown();
   startTimeoutCountdown();
   updateProgressUI(Math.max(state.progress.percent || 90, 90), null, '資料量較大，已排程推送完成結果');
+  updateProgressStatus(ANALYSIS_STATUS_LABELS.timeout || DEFAULT_STATUS_LABEL);
   if (els.timeoutSample && state.sampleUrl) {
     els.timeoutSample.href = state.sampleUrl;
   }
@@ -1338,22 +1386,23 @@ function resetFlow() {
 }
 
 function redirectToReport() {
-  if (!reportUrl) {
-    showToast('尚未設定報表頁面', 2000);
-    return;
+  let target = state.reportPageUrl;
+
+  if (!target && reportUrl) {
+    const token = state.reportToken || state.report?.token || '';
+    target = buildUrlWithParams(reportUrl, {
+      token,
+      lead_id: state.leadId || '',
+      ts: Date.now(),
+    });
   }
 
-  const token = state.reportToken || state.report?.token || '';
-  if (!token) {
+  if (!target) {
     showToast('報表尚未準備完成，請稍後再試。', 2000);
     return;
   }
 
-  state.reportPageUrl = buildUrlWithParams(reportUrl, {
-    token,
-    lead_id: state.leadId || '',
-    ts: Date.now(),
-  });
+  state.reportPageUrl = target;
 
   logEvent('cta_click', {
     action: 'report',
