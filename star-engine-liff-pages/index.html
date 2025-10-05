@@ -61,7 +61,7 @@
         </div>
         <div class="transition-copy">
           <h2>已收到資料！正在定位您的店家與商圈…</h2>
-          <p>我們正在抓取 Google Maps 最新資訊，稍後會自動帶入設定。</p>
+          <p>我正在抓取 Google Maps 最新資訊，稍後會自動帶入設定。</p>
           <div class="transition-meta">
             <span id="transition-counter">3</span>
             <small>秒後帶您進入專屬調校</small>
@@ -79,7 +79,8 @@
         </div>
         <header class="stage-panel__header stage-panel__header--compact">
           <h2>先幫您客製化風格（約 60 秒）</h2>
-          <p class="muted">同時我們正在抓取評論與競品資料，完成後會自動帶入結果。</p>
+          <p class="muted">同時我正在抓取評論與競品資料，完成後會自動帶入結果。</p>
+          <p class="muted muted--context" id="quiz-context" hidden>我已定位您的門市，正在蒐集附近的競品與評論。</p>
         </header>
 
         <form id="quiz-form" class="quiz-form">
@@ -161,8 +162,9 @@
           <span class="brand-line__text">星級引擎｜脈動智匯</span>
         </div>
         <header class="stage-panel__header stage-panel__header--compact">
-          <h2>設定已完成，我們會依照您的偏好產生報告。</h2>
+          <h2>設定已完成，我會依照您的偏好產生報告。</h2>
           <p class="muted">稍後您將收到：差距雷達、本週三件事，以及依語氣調整的三版回覆草稿。</p>
+          <p class="muted muted--context" id="summary-context" hidden>我已鎖定您的門市與城市資料，正在同步競品與評論。</p>
         </header>
 
         <div class="summary-card">
@@ -193,7 +195,7 @@
         </div>
         <div class="progress-dock__meta">
           <span id="progress-label-s3">資料收集中… 進度 0%</span>
-          <span id="progress-eta-s3" class="muted">我們會即時通知完成狀態</span>
+          <span id="progress-eta-s3" class="muted">我會即時通知完成狀態</span>
         </div>
       </div>
     </section>
@@ -207,7 +209,7 @@
         </div>
         <header class="stage-panel__header stage-panel__header--compact">
           <h2>初檢完成！這是您的 AI 報表預覽</h2>
-          <p class="muted">我們已完成差距雷達、三件事與回覆草稿，並為你準備品牌樣本報表，點擊即可查看。</p>
+          <p class="muted">我已完成差距雷達、本週三件事與回覆草稿，並為你準備品牌樣本報表，點擊即可查看。</p>
         </header>
 
         <div class="result-grid">
@@ -232,8 +234,9 @@
         </div>
 
         <div class="result-actions">
-          <button id="cta-report" type="button" class="btn btn--gradient">了解完整報表</button>
-          <a id="cta-plan" class="btn btn--outline" href="https://chelov134999.app.n8n.cloud/pay/star-guard-4980" target="_blank" rel="noopener">瞭解守護方案</a>
+          <a id="cta-plan" class="btn btn--gradient" href="plans.html" target="_blank" rel="noopener">開啟 AI 守護方案</a>
+          <button id="cta-secondary" type="button" class="btn btn--outline">看看我能挽回多少營收</button>
+          <button id="cta-report" type="button" class="btn btn--ghost">查看完整報表</button>
           <button id="return-home" type="button" class="btn btn--ghost">返回主畫面</button>
         </div>
       </div>
@@ -249,7 +252,7 @@
         <header class="stage-panel__header">
           <span class="stage-tag stage-tag--warning">S5 · 已排程完成後推送</span>
           <h2>資料較多，已自動排程</h2>
-          <p class="muted">完成後會第一時間發到 LINE。您剛才的客製化設定已儲存，報告會套用您的語氣與關注競品。</p>
+          <p class="muted">完成後我會第一時間發到 LINE。您剛才的客製化設定已儲存，報告會套用您的語氣與關注競品。</p>
         </header>
 
         <div class="timeout-actions">
@@ -270,6 +273,8 @@
   <script src="https://static.line-scdn.net/liff/edge/versions/2.21.2/sdk.js"></script>
   <script src="config.runtime.js"></script>
   <script src="config.js"></script>
+  <script src="report-utils.js"></script>
+  <script src="analytics.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

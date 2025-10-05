@@ -8,16 +8,22 @@ const endpoints = {
   weeklyDraft: config.weeklyDraftUrl || '',
 };
 
-const reportUrl = config.reportUrl || config.report_url || '';
+const reportUrl = config.reportUrl || config.report_url || 'report.html';
 const formUrl = config.formUrl || config.form_url || window.location.href;
-const planUrl = config.checkoutPrimaryUrl || config.checkout_primary_url || '#';
-const sampleReportUrl = config.sampleReportUrl || 'https://app.mdzh.io/samples/report-v1.html';
+const plansPageUrl = config.plansPageUrl || config.planPageUrl || 'plans.html';
+const sampleReportUrl = config.sampleReportUrl || 'sample-report.html';
+
+const logEvent = (...args) => {
+  if (typeof window.logEvent === 'function') {
+    window.logEvent(...args);
+  }
+};
 
 const STAGES = ['s0', 's1', 's2', 's3', 's4', 's5'];
 const PROGRESS_TICKS = [
   { percent: 45, label: '資料收集中… 進度 45%', eta: '最近 7 天評論載入中' },
   { percent: 60, label: '正在比對競品差距… 進度 60%', eta: '附近競品完成定位' },
-  { percent: 75, label: '生成專屬草稿… 進度 75%', eta: 'AI 正撰寫回覆草稿與建議' }
+  { percent: 75, label: '生成專屬草稿… 進度 75%', eta: '我正撰寫回覆草稿與建議' }
 ];
 const PROGRESS_TIMEOUT_MS = 75 * 1000;
 const TRANSITION_DURATION_MS = 3000;
@@ -42,11 +48,13 @@ const els = {
   quizSkip: document.getElementById('quiz-skip'),
   quizError: document.getElementById('quiz-error'),
   quizCompetitors: document.getElementById('quiz-competitors'),
+  quizContext: document.getElementById('quiz-context'),
   summaryGoal: document.getElementById('summary-goal'),
   summaryTone: document.getElementById('summary-tone'),
   summaryCompetitors: document.getElementById('summary-competitors'),
   summaryConfirm: document.getElementById('summary-confirm'),
   summaryBack: document.getElementById('summary-back'),
+  summaryContext: document.getElementById('summary-context'),
   progressBarS2: document.getElementById('progress-bar'),
   progressLabelS2: document.getElementById('progress-label'),
   progressEtaS2: document.getElementById('progress-eta'),
@@ -58,6 +66,7 @@ const els = {
   resultDraftsList: document.getElementById('result-drafts-list'),
   ctaReport: document.getElementById('cta-report'),
   ctaPlan: document.getElementById('cta-plan'),
+  ctaSecondary: document.getElementById('cta-secondary'),
   returnHome: document.getElementById('return-home'),
   timeoutSample: document.getElementById('timeout-sample'),
   timeoutWeekly: document.getElementById('timeout-weekly'),
@@ -98,8 +107,50 @@ const state = {
     started: false,
   },
   report: null,
+  psychology: null,
+  reportToken: '',
+  templateId: 'unknown',
+  planUrl: '',
+  sampleUrl: '',
+  reportPageUrl: '',
   mode: params.get('view') === 'report' ? 'report' : 'form',
 };
+
+function updateContextHints() {
+  const place = state.leadPayload || {};
+  const storeName = place.name || '';
+  const city = place.city || '';
+  const contextText = storeName
+    ? `我已定位 ${storeName}，正在蒐集 ${city ? `${city} 的` : '附近'}競品與評論。`
+    : city
+      ? `我正在蒐集 ${city} 的競品與評論。`
+      : '我正在蒐集附近競品與評論。';
+
+  if (els.quizContext) {
+    els.quizContext.textContent = contextText;
+    els.quizContext.hidden = false;
+  }
+  if (els.summaryContext) {
+    els.summaryContext.textContent = contextText;
+    els.summaryContext.hidden = false;
+  }
+}
+
+function buildUrlWithParams(baseUrl, params = {}) {
+  if (!baseUrl) return '#';
+  try {
+    const url = new URL(baseUrl, window.location.origin);
+    Object.entries(params)
+      .filter(([, value]) => value !== undefined && value !== null && value !== '')
+      .forEach(([key, value]) => {
+        url.searchParams.set(key, value);
+      });
+    return url.toString();
+  } catch (error) {
+    console.warn('[url] build failed', error);
+    return baseUrl;
+  }
+}
 
 function generateLeadId() {
   const now = new Date();
@@ -374,6 +425,7 @@ async function handleLeadSubmit(event) {
     state.progress.lastStage = 'collecting';
 
     resetProgressUI();
+    updateContextHints();
 
     if (els.transitionCounter) {
       els.transitionCounter.textContent = '…';
@@ -389,6 +441,7 @@ async function handleLeadSubmit(event) {
     const result = await leadRequest;
     state.leadId = result.lead_id || payload.lead_id;
     state.leadPayload = payload.place;
+    updateContextHints();
   } catch (error) {
     console.error(error);
     showToast(`送出失敗：${error.message}`);
@@ -655,6 +708,30 @@ function handleStatusResponse(payload) {
 
   if (payload.report) {
     state.report = payload.report;
+    if (!state.reportToken && payload.report.token) {
+      state.reportToken = payload.report.token;
+    }
+    if (payload.report.template_id) {
+      state.templateId = payload.report.template_id;
+    }
+  }
+
+  if (payload.psychology) {
+    state.psychology = payload.psychology;
+    if (payload.psychology.template_id) {
+      state.templateId = payload.psychology.template_id;
+    }
+  }
+
+  if (payload.report_token) {
+    state.reportToken = payload.report_token;
+  }
+  if (payload.template_id) {
+    state.templateId = payload.template_id;
+  }
+
+  if (payload.lead_id) {
+    state.leadId = payload.lead_id;
   }
 
   state.progress.lastStage = stage;
@@ -679,57 +756,74 @@ function handleStatusResponse(payload) {
   }
 }
 
-function buildListItems(target, items = [], formatter) {
-  if (!target) return;
-  target.innerHTML = '';
-  if (!items.length) {
-    const li = document.createElement('li');
-    li.textContent = '資料準備中，稍後自動更新。';
-    li.className = 'muted';
-    target.appendChild(li);
-    return;
-  }
-  items.forEach((item) => {
-    const li = document.createElement('li');
-    li.textContent = formatter ? formatter(item) : String(item);
-    target.appendChild(li);
-  });
-}
-
 function renderAnalysisReport() {
   if (!state.report) {
     showToast('尚未取得報告內容，請稍後再試。');
     return;
   }
 
-  const {
-    goal_label: goalLabel,
-    tone_label: toneLabel,
-    competitors_auto: competitorsAuto = [],
-    competitors_selected: competitorsSelected = [],
-    weekly_actions: weeklyActions = [],
-    reply_drafts: replyDrafts = [],
-  } = state.report;
+  const report = state.report;
+  const utils = window.ReportUtils || {};
+  const competitorsPreferred = report.competitors || report.competitors_agent || [];
+  const competitorFallback = (report.competitors_selected || []).concat(report.competitors_auto || []);
+  const competitors = competitorsPreferred.length ? competitorsPreferred : competitorFallback;
+  const weeklyActions = report.weekly_actions || [];
+  const replyDrafts = report.reply_drafts || [];
 
-  const combinedCompetitors = competitorsSelected.concat(competitorsAuto);
-  buildListItems(els.resultRadarList, combinedCompetitors.slice(0, 5), (item) => {
-    const name = item.name || '未命名店家';
-    const rating = typeof item.rating === 'number' ? `${item.rating.toFixed(1)} ★` : '— ★';
-    const reviews = item.reviews_total != null ? `${item.reviews_total} 則` : '評論數不足';
-    const distance = item.distance_m != null ? `${Math.round(item.distance_m)} 公尺` : '距離未知';
-    return `${name}｜${rating}｜${reviews}｜${distance}`;
-  });
+  let renderedActions = weeklyActions;
 
-  buildListItems(els.resultActionsList, weeklyActions.slice(0, 3));
+  if (els.resultRadarList) {
+    if (utils.renderCompetitors) {
+      utils.renderCompetitors(els.resultRadarList, competitors.slice(0, 5), {
+        emptyMessage: '競品資料整理中，稍後自動更新。',
+      });
+    } else {
+      els.resultRadarList.innerHTML = '';
+      competitors.slice(0, 5).forEach((item) => {
+        const li = document.createElement('li');
+        li.className = 'report-competitor';
+        li.textContent = `${item.name || '未命名店家'}｜${item.rating || '—'}｜${item.reviews_total || ''}`;
+        els.resultRadarList.appendChild(li);
+      });
+    }
+  }
+
+  if (els.resultActionsList) {
+    if (utils.renderActions) {
+      renderedActions = utils.renderActions(els.resultActionsList, weeklyActions.slice(0, 3), {
+        emptyMessage: '本週行動清單準備中。',
+      });
+    } else {
+      els.resultActionsList.innerHTML = '';
+      weeklyActions.slice(0, 3).forEach((item) => {
+        const li = document.createElement('li');
+        li.textContent = String(item);
+        els.resultActionsList.appendChild(li);
+      });
+    }
+  }
 
   if (els.resultDraftsList) {
-    els.resultDraftsList.innerHTML = '';
-    if (!replyDrafts.length) {
-      const empty = document.createElement('p');
-      empty.className = 'muted';
-      empty.textContent = '草稿準備中，稍後會自動推送至 LINE。';
-      els.resultDraftsList.appendChild(empty);
+    if (utils.renderDrafts) {
+      utils.renderDrafts(els.resultDraftsList, replyDrafts.slice(0, 3), {
+        copyLabel: '複製草稿',
+        onCopy: async (text) => {
+          try {
+            await navigator.clipboard.writeText(text);
+            showToast('已複製草稿', 1800);
+            logEvent('cta_click', {
+              action: 'copy_draft',
+              lead_id: state.leadId,
+              template_id: state.templateId,
+              source: 'preview',
+            });
+          } catch (error) {
+            showToast('複製失敗，請手動複製');
+          }
+        },
+      });
     } else {
+      els.resultDraftsList.innerHTML = '';
       replyDrafts.slice(0, 3).forEach((draft, index) => {
         const card = document.createElement('div');
         card.className = 'draft-item';
@@ -737,19 +831,7 @@ function renderAnalysisReport() {
         title.textContent = `草稿 #${index + 1}`;
         const body = document.createElement('p');
         body.textContent = draft.text || draft;
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'btn btn--ghost';
-        btn.textContent = '複製草稿';
-        btn.addEventListener('click', async () => {
-          try {
-            await navigator.clipboard.writeText(draft.text || draft);
-            showToast('已複製草稿', 1800);
-          } catch (error) {
-            showToast('複製失敗，請手動複製');
-          }
-        });
-        card.append(title, body, btn);
+        card.append(title, body);
         els.resultDraftsList.appendChild(card);
       });
     }
@@ -757,14 +839,20 @@ function renderAnalysisReport() {
 
   if (els.copyActions) {
     els.copyActions.onclick = async () => {
-      const content = weeklyActions.join('\n• ');
-      if (!content) {
+      const list = (Array.isArray(renderedActions) ? renderedActions : []).map((item) => item.text || item);
+      if (!list.length) {
         showToast('尚無可複製的任務');
         return;
       }
       try {
-        await navigator.clipboard.writeText(`• ${content}`);
+        await navigator.clipboard.writeText(list.map((text) => `• ${text}`).join('\n'));
         showToast('已複製本週三件事', 1800);
+        logEvent('cta_click', {
+          action: 'copy_actions',
+          lead_id: state.leadId,
+          template_id: state.templateId,
+          source: 'preview',
+        });
       } catch (error) {
         showToast('複製失敗，請手動複製');
       }
@@ -772,15 +860,38 @@ function renderAnalysisReport() {
   }
 
   if (els.summaryGoal) {
-    els.summaryGoal.textContent = goalLabel || els.summaryGoal.textContent;
+    els.summaryGoal.textContent = report.goal_label || els.summaryGoal.textContent;
   }
   if (els.summaryTone) {
-    els.summaryTone.textContent = toneLabel || els.summaryTone.textContent;
+    els.summaryTone.textContent = report.tone_label || els.summaryTone.textContent;
   }
 
+  const planParams = {
+    lead_id: state.leadId || '',
+    template_id: state.templateId || 'unknown',
+  };
+  state.planUrl = buildUrlWithParams(plansPageUrl, planParams);
+  state.sampleUrl = buildUrlWithParams(sampleReportUrl, {
+    lead_id: state.leadId || '',
+    template_id: state.templateId || 'unknown',
+  });
+  state.reportPageUrl = buildUrlWithParams(reportUrl, {
+    token: state.reportToken || report.token || '',
+    lead_id: state.leadId || '',
+    ts: Date.now(),
+  });
+
   if (els.ctaPlan) {
-    els.ctaPlan.href = planUrl || '#';
+    els.ctaPlan.href = state.planUrl;
   }
+  if (els.ctaSecondary) {
+    els.ctaSecondary.disabled = !state.sampleUrl;
+  }
+
+  logEvent('report_preview_ready', {
+    lead_id: state.leadId,
+    template_id: state.templateId,
+  });
 
   setStage('s4');
 }
@@ -790,6 +901,9 @@ function triggerTimeout() {
   state.progress.timeoutFired = true;
   stopProgressTimers();
   updateProgressUI(Math.max(state.progress.percent || 90, 90), null, '資料量較大，已排程推送完成結果');
+  if (els.timeoutSample && state.sampleUrl) {
+    els.timeoutSample.href = state.sampleUrl;
+  }
   setStage('s5');
 }
 
@@ -838,6 +952,12 @@ function resetFlow() {
     lastStage: '',
   };
   state.report = null;
+  state.psychology = null;
+  state.reportToken = '';
+  state.templateId = 'unknown';
+  state.planUrl = '';
+  state.sampleUrl = '';
+  state.reportPageUrl = '';
 
   if (els.leadForm) {
     els.leadForm.reset();
@@ -850,6 +970,12 @@ function resetFlow() {
     els.quizForm.reset();
     els.quizError.hidden = true;
   }
+  if (els.quizContext) {
+    els.quizContext.hidden = true;
+  }
+  if (els.summaryContext) {
+    els.summaryContext.hidden = true;
+  }
   if (els.summaryConfirm) {
     els.summaryConfirm.disabled = false;
     els.summaryConfirm.textContent = '確認設定，開始分析';
@@ -859,15 +985,46 @@ function resetFlow() {
 }
 
 function redirectToReport() {
-  if (!state.report || !reportUrl) {
-    showToast('尚未準備好完整報表', 2000);
+  if (!reportUrl) {
+    showToast('尚未設定報表頁面', 2000);
     return;
   }
-  const token = state.report.token || '';
-  const target = token
-    ? `${reportUrl}${reportUrl.includes('?') ? '&' : '?'}token=${encodeURIComponent(token)}`
-    : reportUrl;
-  window.location.href = target;
+
+  const token = state.reportToken || state.report?.token || '';
+  if (!token) {
+    showToast('報表尚未準備完成，請稍後再試。', 2000);
+    return;
+  }
+
+  state.reportPageUrl = buildUrlWithParams(reportUrl, {
+    token,
+    lead_id: state.leadId || '',
+    ts: Date.now(),
+  });
+
+  logEvent('cta_click', {
+    action: 'report',
+    lead_id: state.leadId,
+    template_id: state.templateId,
+    source: 'preview',
+  });
+
+  window.location.href = state.reportPageUrl;
+}
+
+function handleSecondaryCta(event) {
+  event?.preventDefault?.();
+  if (!state.sampleUrl) {
+    showToast('樣本報表準備中');
+    return;
+  }
+  window.open(state.sampleUrl, '_blank');
+  logEvent('cta_click', {
+    action: 'secondary',
+    lead_id: state.leadId,
+    template_id: state.templateId,
+    source: 'preview',
+  });
 }
 
 function attachEventListeners() {
@@ -882,6 +1039,15 @@ function attachEventListeners() {
   els.copyActions?.addEventListener('click', (event) => {
     event.preventDefault();
   });
+  els.ctaPlan?.addEventListener('click', () => {
+    logEvent('cta_click', {
+      action: 'main',
+      lead_id: state.leadId,
+      template_id: state.templateId,
+      source: 'preview',
+    });
+  });
+  els.ctaSecondary?.addEventListener('click', handleSecondaryCta);
   els.ctaReport?.addEventListener('click', (event) => {
     event.preventDefault();
     redirectToReport();
@@ -907,8 +1073,8 @@ function attachEventListeners() {
   if (els.timeoutSample && sampleReportUrl) {
     els.timeoutSample.href = sampleReportUrl;
   }
-  if (els.ctaPlan && planUrl) {
-    els.ctaPlan.href = planUrl;
+  if (els.ctaPlan && plansPageUrl) {
+    els.ctaPlan.href = plansPageUrl;
   }
   if (els.aboutLink) {
     els.aboutLink.href = 'about.html';
