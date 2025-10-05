@@ -170,11 +170,14 @@ function showToast(message, duration = 2600) {
 
 function openAboutPage() {
   const fallbackUrl = 'about.html';
+  const timestamp = Date.now();
   if (state.liffReady && config.aboutUrl && window.liff?.openWindow) {
-    window.liff.openWindow({ url: config.aboutUrl, external: false });
+    const targetUrl = buildUrlWithParams(config.aboutUrl, { ts: timestamp });
+    window.liff.openWindow({ url: targetUrl, external: false });
     return;
   }
-  window.open(fallbackUrl, '_blank');
+  const target = buildUrlWithParams(fallbackUrl, { ts: timestamp });
+  window.open(target, '_blank');
 }
 
 function setStage(nextStage) {
