@@ -13,6 +13,16 @@ const formUrl = config.formUrl || config.form_url || window.location.href;
 const plansPageUrl = config.plansPageUrl || config.planPageUrl || 'plans.html';
 const sampleReportUrl = config.sampleReportUrl || 'sample-report.html';
 
+const ANALYSIS_COUNTDOWN_SECONDS = 60;
+const TIP_ROTATE_INTERVAL_MS = 9000;
+const ANALYSIS_TIPS = [
+  'AI 正在整理你的評論與競品差距…',
+  '等候時可以想好想追蹤的競品，我會一併分析。',
+  '選擇語氣後，我會提供貼近門市風格的草稿。'
+];
+const DEFAULT_TIMEOUT_NOTE = '資料較多，我會在完成後發送通知。';
+const DATAFORSEO_TIMEOUT_NOTE = '已先交付 Google 資料，評論補齊後會再次通知你。';
+
 const logEvent = (...args) => {
   if (typeof window.logEvent === 'function') {
     window.logEvent(...args);
@@ -61,15 +71,22 @@ const els = {
   progressBarS3: document.getElementById('progress-bar-s3'),
   progressLabelS3: document.getElementById('progress-label-s3'),
   progressEtaS3: document.getElementById('progress-eta-s3'),
+  progressCountdown: document.getElementById('progress-countdown'),
+  progressCountdownNumber: document.getElementById('progress-countdown-number'),
+  progressTip: document.getElementById('progress-tip'),
   resultRadarList: document.getElementById('result-radar-list'),
   resultActionsList: document.getElementById('result-actions-list'),
   resultDraftsList: document.getElementById('result-drafts-list'),
+  resultWarning: document.getElementById('result-warning'),
+  resultWarningText: document.getElementById('result-warning-text'),
   ctaReport: document.getElementById('cta-report'),
   ctaPlan: document.getElementById('cta-plan'),
   ctaSecondary: document.getElementById('cta-secondary'),
   returnHome: document.getElementById('return-home'),
   timeoutSample: document.getElementById('timeout-sample'),
   timeoutWeekly: document.getElementById('timeout-weekly'),
+  timeoutReport: document.getElementById('timeout-report'),
+  timeoutNote: document.getElementById('timeout-note'),
   timeoutBack: document.getElementById('timeout-back'),
   copyActions: document.getElementById('copy-actions'),
   toast: document.getElementById('toast'),
@@ -100,6 +117,12 @@ const state = {
     timeoutFired: false,
     ninetyReachedAt: 0,
     lastStage: '',
+    countdownRemaining: 0,
+    countdownTimerId: null,
+    tipTimerId: null,
+    tipIndex: 0,
+    pendingLogged: false,
+    completionLogged: false,
   },
   transition: {
     countdownId: null,
@@ -113,6 +136,8 @@ const state = {
   planUrl: '',
   sampleUrl: '',
   reportPageUrl: '',
+  timeoutContext: {},
+  latestWarnings: [],
   mode: params.get('view') === 'report' ? 'report' : 'form',
 };
 
@@ -239,10 +264,93 @@ function updateProgressUI(percent, etaSeconds, stageLabel = '') {
   state.progress.percent = safePercent;
 }
 
+function stopAnalysisCountdown() {
+  if (state.progress.countdownTimerId) {
+    clearInterval(state.progress.countdownTimerId);
+    state.progress.countdownTimerId = null;
+  }
+  if (state.progress.tipTimerId) {
+    clearInterval(state.progress.tipTimerId);
+    state.progress.tipTimerId = null;
+  }
+  state.progress.countdownRemaining = 0;
+  state.progress.tipIndex = 0;
+  if (els.progressCountdown) {
+    els.progressCountdown.hidden = true;
+  }
+}
+
+function setProgressTip(text) {
+  if (!els.progressTip) return;
+  els.progressTip.textContent = text;
+}
+
+function updateCountdownNumber() {
+  if (!els.progressCountdownNumber) return;
+  const value = Math.max(0, Math.round(state.progress.countdownRemaining));
+  els.progressCountdownNumber.textContent = value;
+}
+
+function rotateAnalysisTip() {
+  if (!ANALYSIS_TIPS.length) return;
+  state.progress.tipIndex = (state.progress.tipIndex + 1) % ANALYSIS_TIPS.length;
+  setProgressTip(ANALYSIS_TIPS[state.progress.tipIndex]);
+}
+
+function startAnalysisCountdown() {
+  if (!els.progressCountdown) return;
+  stopAnalysisCountdown();
+  state.progress.countdownRemaining = ANALYSIS_COUNTDOWN_SECONDS;
+  state.progress.tipIndex = 0;
+  els.progressCountdown.hidden = false;
+  updateCountdownNumber();
+  setProgressTip(ANALYSIS_TIPS[0] || 'AI 正在分析資料…');
+  state.progress.countdownTimerId = setInterval(() => {
+    state.progress.countdownRemaining -= 1;
+    if (state.progress.countdownRemaining <= 0) {
+      stopAnalysisCountdown();
+      if (!state.progress.timeoutFired && state.stage !== 's4') {
+        triggerTimeout({ reason: 'countdown_expired' });
+      }
+      return;
+    }
+    updateCountdownNumber();
+  }, 1000);
+
+  if (ANALYSIS_TIPS.length > 1) {
+    state.progress.tipTimerId = setInterval(() => {
+      rotateAnalysisTip();
+    }, TIP_ROTATE_INTERVAL_MS);
+  }
+}
+
+function mergeContextArray(prev = [], next = []) {
+  const set = new Set(prev);
+  next.forEach((item) => {
+    if (item != null) {
+      set.add(item);
+    }
+  });
+  return Array.from(set);
+}
+
+function updateTimeoutUI() {
+  if (!els.timeoutNote) return;
+  const context = state.timeoutContext || {};
+  const warnings = Array.isArray(context.warnings) ? context.warnings : [];
+  const flags = context.flags || {};
+  const hasDataforseoIssue = Boolean(flags.dataforseo_missing) || warnings.includes('dataforseo_missing');
+  els.timeoutNote.textContent = hasDataforseoIssue ? DATAFORSEO_TIMEOUT_NOTE : DEFAULT_TIMEOUT_NOTE;
+  if (els.timeoutReport) {
+    els.timeoutReport.hidden = !hasDataforseoIssue;
+  }
+}
+
 function resetProgressUI() {
   state.progress.percent = 0;
   state.progress.frontPercent = 0;
   state.progress.ninetyReachedAt = 0;
+  stopAnalysisCountdown();
 
   if (els.progressBarS2) {
     els.progressBarS2.style.width = '0%';
@@ -317,6 +425,7 @@ function stopProgressTimers() {
     state.transition.timeoutId = null;
   }
   state.transition.started = false;
+  stopAnalysisCountdown();
 }
 
 async function initLiff() {
@@ -426,6 +535,11 @@ async function handleLeadSubmit(event) {
     state.progress.tickerIndex = 0;
     state.progress.ninetyReachedAt = 0;
     state.progress.lastStage = 'collecting';
+    state.progress.pendingLogged = false;
+    state.progress.completionLogged = false;
+    state.timeoutContext = {};
+    state.latestWarnings = [];
+    updateTimeoutUI();
 
     resetProgressUI();
     updateContextHints();
@@ -660,6 +774,18 @@ function startPolling() {
   state.progress.ninetyReachedAt = 0;
   state.progress.lastStage = '';
   state.progress.timeoutFired = false;
+  state.progress.completionLogged = false;
+  if (!state.progress.pendingLogged) {
+    logEvent('analysis_pending_start', {
+      lead_id: state.leadId,
+      template_id: state.templateId,
+    });
+    state.progress.pendingLogged = true;
+  }
+  stopAnalysisCountdown();
+  startAnalysisCountdown();
+  state.timeoutContext = {};
+  updateTimeoutUI();
   const poll = async () => {
     try {
       const url = new URL(endpoints.analysisStatus);
@@ -683,6 +809,25 @@ function startPolling() {
   }, PROGRESS_TIMEOUT_MS);
 }
 
+function handleAnalysisCompleted(context = {}) {
+  state.progress.timeoutFired = false;
+  stopProgressTimers();
+  stopAnalysisCountdown();
+  if (!state.progress.completionLogged) {
+    const elapsed = state.progress.startAt ? Date.now() - state.progress.startAt : null;
+    logEvent('analysis_completed', {
+      lead_id: state.leadId,
+      template_id: state.templateId,
+      elapsed_ms: elapsed,
+      warnings: context.warnings || [],
+    });
+    state.progress.completionLogged = true;
+  }
+  state.timeoutContext = {};
+  updateTimeoutUI();
+  renderAnalysisReport(context);
+}
+
 function handleStatusResponse(payload) {
   if (!payload || typeof payload !== 'object') return;
   if (!state.leadId || payload.lead_id !== state.leadId) return;
@@ -690,6 +835,11 @@ function handleStatusResponse(payload) {
   const stage = (payload.stage || '').toLowerCase();
   const percent = typeof payload.percent === 'number' ? payload.percent : state.progress.percent;
   const etaSeconds = typeof payload.eta_seconds === 'number' ? payload.eta_seconds : null;
+  const statusValue = typeof payload.status === 'string'
+    ? payload.status
+    : (payload.status && typeof payload.status === 'object' ? payload.status.state || '' : '');
+  const warnings = Array.isArray(payload.warnings) ? payload.warnings : [];
+  const flags = payload.flags || (payload.report && payload.report.flags) || {};
   const stageHints = {
     collecting: '正在定位您的門市與商圈…',
     processing: '正在抓取 DataForSEO 與附近競品…',
@@ -747,19 +897,24 @@ function handleStatusResponse(payload) {
     animateFrontProgress(85, 2000);
   }
 
-  if (stage === 'ready') {
-    stopProgressTimers();
+  if (statusValue === 'complete' && payload.report) {
     updateProgressUI(100, 0, stageHints.ready);
-    renderAnalysisReport();
+    handleAnalysisCompleted({ warnings, flags });
+    return;
+  }
+
+  if (stage === 'ready') {
+    updateProgressUI(100, 0, stageHints.ready);
+    handleAnalysisCompleted({ warnings, flags });
   } else if (stage === 'scheduled' || stage === 'timeout') {
-    triggerTimeout();
+    triggerTimeout({ warnings, flags });
   } else if (stage === 'failed') {
     showToast('分析失敗，請稍後再試或聯絡支援。');
-    triggerTimeout();
+    triggerTimeout({ warnings, flags });
   }
 }
 
-function renderAnalysisReport() {
+function renderAnalysisReport(context = {}) {
   if (!state.report) {
     showToast('尚未取得報告內容，請稍後再試。');
     return;
@@ -767,6 +922,28 @@ function renderAnalysisReport() {
 
   const report = state.report;
   const utils = window.ReportUtils || {};
+  const warnings = Array.isArray(context.warnings) ? context.warnings : state.latestWarnings;
+  const flags = context.flags || report.flags || {};
+
+  state.latestWarnings = warnings || [];
+  state.timeoutContext = {};
+  updateTimeoutUI();
+  stopAnalysisCountdown();
+
+  if (els.resultWarning && els.resultWarningText) {
+    const hasDataforseoIssue = Boolean(flags.dataforseo_missing) || (warnings || []).includes('dataforseo_missing');
+    if (hasDataforseoIssue) {
+      els.resultWarning.hidden = false;
+      els.resultWarningText.textContent = 'Google 評論資料仍在補齊，我會在同步完成後再次通知你。';
+    } else if (warnings && warnings.length) {
+      els.resultWarning.hidden = false;
+      els.resultWarningText.textContent = warnings.join('、');
+    } else {
+      els.resultWarning.hidden = true;
+      els.resultWarningText.textContent = '';
+    }
+  }
+
   const competitorsPreferred = report.competitors || report.competitors_agent || [];
   const competitorFallback = (report.competitors_selected || []).concat(report.competitors_auto || []);
   const competitors = competitorsPreferred.length ? competitorsPreferred : competitorFallback;
@@ -899,10 +1076,32 @@ function renderAnalysisReport() {
   setStage('s4');
 }
 
-function triggerTimeout() {
-  if (state.progress.timeoutFired) return;
+function triggerTimeout(context = {}) {
+  const wasTimedOut = state.progress.timeoutFired;
+  const previousContext = state.timeoutContext || {};
+  const mergedWarnings = mergeContextArray(previousContext.warnings || [], context.warnings || []);
+  const mergedFlags = {
+    ...(previousContext.flags || {}),
+    ...(context.flags || {}),
+  };
+  state.timeoutContext = {
+    ...previousContext,
+    ...context,
+    flags: mergedFlags,
+    warnings: mergedWarnings,
+  };
+  updateTimeoutUI();
+
+  if (wasTimedOut) {
+    return;
+  }
+
   state.progress.timeoutFired = true;
-  stopProgressTimers();
+  if (state.progress.timerId) {
+    clearTimeout(state.progress.timerId);
+    state.progress.timerId = null;
+  }
+  stopAnalysisCountdown();
   updateProgressUI(Math.max(state.progress.percent || 90, 90), null, '資料量較大，已排程推送完成結果');
   if (els.timeoutSample && state.sampleUrl) {
     els.timeoutSample.href = state.sampleUrl;
@@ -953,6 +1152,12 @@ function resetFlow() {
     timeoutFired: false,
     ninetyReachedAt: 0,
     lastStage: '',
+    countdownRemaining: 0,
+    countdownTimerId: null,
+    tipTimerId: null,
+    tipIndex: 0,
+    pendingLogged: false,
+    completionLogged: false,
   };
   state.report = null;
   state.psychology = null;
@@ -961,6 +1166,9 @@ function resetFlow() {
   state.planUrl = '';
   state.sampleUrl = '';
   state.reportPageUrl = '';
+  state.timeoutContext = {};
+  state.latestWarnings = [];
+  updateTimeoutUI();
 
   if (els.leadForm) {
     els.leadForm.reset();
@@ -1039,6 +1247,16 @@ function attachEventListeners() {
   els.returnHome?.addEventListener('click', resetFlow);
   els.timeoutBack?.addEventListener('click', resetFlow);
   els.timeoutWeekly?.addEventListener('click', handleWeeklyDraft);
+  els.timeoutReport?.addEventListener('click', (event) => {
+    event.preventDefault();
+    logEvent('cta_click', {
+      action: 'timeout_report',
+      lead_id: state.leadId,
+      template_id: state.templateId,
+      source: 'timeout',
+    });
+    redirectToReport();
+  });
   els.copyActions?.addEventListener('click', (event) => {
     event.preventDefault();
   });

@@ -198,6 +198,13 @@
           <span id="progress-eta-s3" class="muted">我會即時通知完成狀態</span>
         </div>
       </div>
+      <div class="progress-countdown" id="progress-countdown" hidden>
+        <div class="progress-countdown__timer">
+          <span id="progress-countdown-number">60</span>
+          <small>秒</small>
+        </div>
+        <p id="progress-tip" class="progress-countdown__tip">AI 正在整理你的評論與競品差距…</p>
+      </div>
     </section>
 
     <!-- S4｜分析完成 -->
@@ -211,7 +218,10 @@
           <h2>初檢完成！這是您的 AI 報表預覽</h2>
           <p class="muted">我已完成差距雷達、本週三件事與回覆草稿，並為你準備品牌樣本報表，點擊即可查看。</p>
         </header>
-
+        <div class="result-warning" id="result-warning" hidden>
+          <strong>提醒：</strong>
+          <span id="result-warning-text"></span>
+        </div>
         <div class="result-grid">
           <article class="result-card result-card--radar" id="result-radar">
             <h3>差距雷達</h3>
@@ -255,9 +265,11 @@
           <p class="muted">完成後我會第一時間發到 LINE。您剛才的客製化設定已儲存，報告會套用您的語氣與關注競品。</p>
         </header>
 
+        <p class="timeout-note" id="timeout-note">資料較多，我會在完成後發送通知。</p>
         <div class="timeout-actions">
           <a id="timeout-sample" class="btn btn--primary" href="sample-report.html" target="_blank" rel="noopener">查看樣本報表</a>
           <button id="timeout-weekly" type="button" class="btn btn--outline">先拿本週三件事（試算版）</button>
+          <button id="timeout-report" type="button" class="btn btn--ghost" hidden>回到完整報表</button>
         </div>
         <button id="timeout-back" type="button" class="btn btn--ghost">返回主畫面</button>
       </div>
