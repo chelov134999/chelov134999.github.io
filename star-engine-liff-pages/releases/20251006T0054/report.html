@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI 報表｜星級引擎</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=20251006T0054" />
+</head>
+<body class="page--info page--report">
+  <main class="info-shell report-shell" id="report-app">
+    <section class="report-hero" aria-live="polite">
+      <div class="brand-line">
+        <img class="brand-line__logo" src="logo.png" alt="星級引擎 logo" width="22" height="22" />
+        <span class="brand-line__text">星級引擎｜脈動智匯</span>
+      </div>
+
+      <div class="cognos-card" id="cognos-card">
+        <img class="cognos-card__avatar" src="cognos-avatar.svg" alt="Cognos AI 顧問頭像" width="72" height="72" />
+        <div class="cognos-card__body">
+          <p class="cognos-card__eyebrow" id="cognos-eyebrow">Hi 店長，我是 Cognos</p>
+          <h1 class="cognos-card__title" id="cognos-title">我正在守護你的品牌評分</h1>
+          <p class="cognos-card__subtitle" id="cognos-subtitle">我正在整理最新評論、競品差距與回覆草稿，稍後會把可執行方案送到你手上。</p>
+        </div>
+      </div>
+
+      <div class="report-preferences" id="report-preferences" hidden>
+        <span class="report-preferences__item" id="pref-goal">目標：—</span>
+        <span class="report-preferences__item" id="pref-tone">語氣：—</span>
+      </div>
+
+      <div class="report-alerts" id="report-alerts">
+        <div class="report-alert report-alert--loss" id="alert-loss">若不處理，預估流失金額尚待計算。</div>
+        <div class="report-alert report-alert--gain" id="alert-gain">看看我能為你挽回多少營收。</div>
+      </div>
+
+      <div class="report-cta">
+        <a id="cta-plan-main" class="btn btn--gradient" href="plans.html?v=20251006T0054" target="_blank" rel="noopener">開啟 AI 守護方案</a>
+        <button id="cta-secondary" type="button" class="btn btn--outline">看看我能挽回多少營收</button>
+      </div>
+    </section>
+
+    <section class="report-skeleton" id="report-skeleton">
+      <div class="report-skeleton__block"></div>
+      <div class="report-skeleton__block"></div>
+      <div class="report-skeleton__block"></div>
+    </section>
+
+    <section class="report-loading" id="report-loading" hidden>
+      <div class="spinner" aria-hidden="true"></div>
+      <p>我正在深入分析，請稍候…</p>
+      <button id="btn-return-line" type="button" class="btn btn--ghost">回到 LINE</button>
+    </section>
+
+    <section class="report-error" id="report-error" hidden role="alert">
+      <h2>抱歉，報表暫時無法載入</h2>
+      <p id="report-error-message">請稍後再試，或回到 LINE 由專屬顧問協助。</p>
+      <button id="error-retry" type="button" class="btn btn--primary">重新整理</button>
+      <button id="error-return-line" type="button" class="btn btn--outline">回到 LINE</button>
+    </section>
+
+    <section class="report-content" id="report-content" hidden>
+      <section class="report-section">
+        <header class="report-section__header">
+          <h2>關鍵指標</h2>
+        </header>
+        <div id="report-metrics" class="report-metrics"></div>
+      </section>
+
+      <section class="report-section">
+        <header class="report-section__header">
+          <h2>競品雷達</h2>
+        </header>
+        <ul id="report-competitors" class="report-competitors"></ul>
+      </section>
+
+      <section class="report-section">
+        <header class="report-section__header">
+          <h2>本週三件事</h2>
+        </header>
+        <ul id="report-actions" class="report-actions"></ul>
+      </section>
+
+      <section class="report-section">
+        <header class="report-section__header">
+          <h2>AI 回覆草稿</h2>
+        </header>
+        <div id="report-drafts" class="report-drafts"></div>
+      </section>
+    </section>
+  </main>
+
+  <footer class="footer-link">
+    <a href="index.html?v=20251006T0054">返回初檢</a>
+  </footer>
+
+  <script src="config.runtime.js?v=20251006T0054"></script>
+  <script src="config.js?v=20251006T0054"></script>
+  <script src="report-utils.js?v=20251006T0054"></script>
+  <script src="analytics.js?v=20251006T0054"></script>
+  <script src="report.js?v=20251006T0054"></script>
+</body>
+</html>
