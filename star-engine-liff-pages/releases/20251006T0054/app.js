@@ -20,6 +20,16 @@ const ANALYSIS_TIPS = [
   '等候時可以想好想追蹤的競品，我會一併分析。',
   '選擇語氣後，我會提供貼近門市風格的草稿。'
 ];
+const DEFAULT_STATUS_LABEL = 'AI 調校中';
+const ANALYSIS_STATUS_LABELS = {
+  collecting: '定位商圈中',
+  processing: '抓取評論與競品',
+  analyzing: '生成專屬草稿',
+  ready: '分析完成',
+  scheduled: '排程推送中',
+  timeout: '排程推送中',
+  failed: '分析失敗',
+};
 const TRANSITION_TIP_INTERVAL_MS = 1500;
 const TRANSITION_TIPS = [
   '同步定位商圈與鄰近競品資料…',
@@ -81,6 +91,7 @@ const els = {
   progressCountdown: document.getElementById('progress-countdown'),
   progressCountdownNumber: document.getElementById('progress-countdown-number'),
   progressTip: document.getElementById('progress-tip'),
+  progressStatusLabel: document.getElementById('progress-status-label'),
   resultRadarList: document.getElementById('result-radar-list'),
   resultActionsList: document.getElementById('result-actions-list'),
   resultDraftsList: document.getElementById('result-drafts-list'),
@@ -320,11 +331,23 @@ function stopAnalysisCountdown() {
   if (els.progressCountdown) {
     els.progressCountdown.hidden = true;
   }
+  if (els.progressCountdownNumber) {
+    els.progressCountdownNumber.textContent = ANALYSIS_COUNTDOWN_SECONDS;
+  }
+  if (els.progressTip) {
+    els.progressTip.textContent = ANALYSIS_TIPS[0] || 'AI 正在分析資料…';
+  }
+  updateProgressStatus(DEFAULT_STATUS_LABEL);
 }
 
 function setProgressTip(text) {
   if (!els.progressTip) return;
   els.progressTip.textContent = text;
+}
+
+function updateProgressStatus(label = DEFAULT_STATUS_LABEL) {
+  if (!els.progressStatusLabel) return;
+  els.progressStatusLabel.textContent = label;
 }
 
 function updateCountdownNumber() {
@@ -345,6 +368,7 @@ function startAnalysisCountdown() {
   state.progress.countdownRemaining = ANALYSIS_COUNTDOWN_SECONDS;
   state.progress.tipIndex = 0;
   els.progressCountdown.hidden = false;
+  updateProgressStatus(DEFAULT_STATUS_LABEL);
   updateCountdownNumber();
   setProgressTip(ANALYSIS_TIPS[0] || 'AI 正在分析資料…');
   state.progress.countdownTimerId = setInterval(() => {
@@ -946,6 +970,9 @@ function handleStatusResponse(payload) {
     timeout: '資料量較大，已排程推送完成結果',
     ready: '分析完成！正在回傳結果…',
   };
+
+  const statusKey = isComplete ? 'ready' : (lifecycleState || stage);
+  updateProgressStatus(ANALYSIS_STATUS_LABELS[statusKey] || DEFAULT_STATUS_LABEL);
 
   if (stage === 'collecting' && state.stage === 's1') {
     stopTransitionTips();

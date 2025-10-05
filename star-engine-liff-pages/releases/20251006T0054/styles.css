@@ -487,35 +487,88 @@ body:not(.page--info) {
   font-size: 0.95rem;
 }
 
-.progress-countdown {
-  margin-top: 18px;
+.analysis-card {
+  margin-top: 12px;
+  padding: clamp(22px, 4.6vw, 28px) clamp(24px, 5vw, 32px);
+  border-radius: 26px;
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 45%, #3b82f6 100%);
+  color: #ffffff;
+  display: grid;
+  gap: clamp(16px, 3vw, 22px);
+  box-shadow: 0 28px 52px -32px rgba(17, 38, 94, 0.45);
+}
+
+.analysis-card[hidden] {
+  display: none;
+}
+
+.analysis-card__badge {
   display: flex;
   align-items: center;
-  gap: 18px;
-  padding: 16px 18px;
-  border: 1px solid rgba(29, 78, 216, 0.16);
-  border-radius: 18px;
-  background: rgba(37, 99, 235, 0.08);
+  gap: clamp(14px, 3vw, 20px);
 }
 
-.progress-countdown__timer {
+.analysis-card__icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.18);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  font-size: 0.95rem;
+}
+
+.analysis-card__labels {
+  display: grid;
+  gap: 2px;
+}
+
+.analysis-card__title {
+  font-size: 0.92rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.analysis-card__status {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.analysis-card__content {
+  display: flex;
+  align-items: center;
+  gap: clamp(20px, 5vw, 30px);
+  flex-wrap: wrap;
+}
+
+.analysis-card__timer {
   display: flex;
   align-items: baseline;
-  gap: 4px;
-  font-size: 1.6rem;
+  gap: 10px;
+}
+
+.analysis-card__seconds {
+  font-size: clamp(2.8rem, 7vw, 3.6rem);
   font-weight: 700;
-  color: var(--primary);
+  line-height: 1;
 }
 
-.progress-countdown__timer small {
-  font-size: 0.9rem;
-  color: rgba(37, 99, 235, 0.75);
+.analysis-card__unit {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
 }
 
-.progress-countdown__tip {
+.analysis-card__tip {
+  flex: 1 1 220px;
   margin: 0;
-  font-size: 0.98rem;
-  color: rgba(15, 23, 42, 0.72);
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.86);
 }
 
 .summary-card {
@@ -525,6 +578,7 @@ body:not(.page--info) {
   border: 1px solid rgba(29, 78, 216, 0.12);
   display: grid;
   gap: 16px;
+  margin-top: 12px;
 }
 
 .summary-list {
@@ -1726,10 +1780,10 @@ body.page--info {
     flex: 1 1 100%;
   }
 
-  .progress-countdown {
+  .analysis-card__content {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 16px;
   }
 }
 
@@ -1758,7 +1812,15 @@ body.page--info {
     padding: 20px;
   }
 
-  .progress-countdown__timer {
-    font-size: 1.4rem;
+  .analysis-card__timer {
+    gap: 8px;
+  }
+
+  .analysis-card__seconds {
+    font-size: 2.4rem;
+  }
+
+  .analysis-card__tip {
+    font-size: 0.95rem;
   }
 }

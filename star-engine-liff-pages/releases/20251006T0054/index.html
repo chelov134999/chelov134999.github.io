@@ -168,6 +168,23 @@
           <p class="muted muted--context" id="summary-context" hidden>我已鎖定您的門市與城市資料，正在同步競品與評論。</p>
         </header>
 
+        <div class="analysis-card" id="progress-countdown" hidden>
+          <div class="analysis-card__badge">
+            <div class="analysis-card__icon" aria-hidden="true">AI</div>
+            <div class="analysis-card__labels">
+              <span class="analysis-card__title">AI 調校中</span>
+              <span class="analysis-card__status" id="progress-status-label">AI 調校中</span>
+            </div>
+          </div>
+          <div class="analysis-card__content">
+            <div class="analysis-card__timer">
+              <span class="analysis-card__seconds" id="progress-countdown-number">60</span>
+              <span class="analysis-card__unit">秒</span>
+            </div>
+            <p id="progress-tip" class="analysis-card__tip">AI 正在整理你的評論與競品差距…</p>
+          </div>
+        </div>
+
         <div class="summary-card">
           <dl class="summary-list">
             <div>
@@ -198,13 +215,6 @@
           <span id="progress-label-s3">資料收集中… 進度 0%</span>
           <span id="progress-eta-s3" class="muted">我會即時通知完成狀態</span>
         </div>
-      </div>
-      <div class="progress-countdown" id="progress-countdown" hidden>
-        <div class="progress-countdown__timer">
-          <span id="progress-countdown-number">60</span>
-          <small>秒</small>
-        </div>
-        <p id="progress-tip" class="progress-countdown__tip">AI 正在整理你的評論與競品差距…</p>
       </div>
     </section>
 
