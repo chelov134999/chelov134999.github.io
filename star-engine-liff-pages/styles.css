@@ -168,6 +168,13 @@ body:not(.page--info) {
   color: inherit;
 }
 
+.transition-tip {
+  margin: 4px auto 0;
+  max-width: 360px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
 .stage-panel__header {
   display: grid;
   gap: 14px;
@@ -652,6 +659,12 @@ body:not(.page--info) {
   font-size: 0.96rem;
   color: rgba(15, 23, 42, 0.68);
   line-height: 1.6;
+}
+
+.timeout-countdown {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+  color: rgba(15, 23, 42, 0.62);
 }
 
 .footer-link {

@@ -9,8 +9,11 @@
     analysisStatusUrl: 'https://chelov134999.app.n8n.cloud/webhook/analysis-status',
     weeklyDraftUrl: 'https://chelov134999.app.n8n.cloud/webhook/weekly-draft',
     reportEndpoint: 'https://chelov134999.app.n8n.cloud/webhook/report-data',
-    reportUrl: 'https://liff.line.me/2008215846-5LwXlWVN?view=report',
+    reportUrl: 'https://chelov134999.github.io/star-engine-liff-pages/report.html?ts=20251005c',
     trialUrl: 'https://line.me/ti/p/@star-up',
+    aboutUrl: 'https://chelov134999.github.io/star-engine-liff-pages/about.html?ts=20251005c',
+    sampleReportUrl: 'https://chelov134999.github.io/star-engine-liff-pages/sample-report.html?ts=20251005c',
+    plansPageUrl: 'https://chelov134999.github.io/star-engine-liff-pages/plans.html?ts=20251005c',
   };
 
   const coalesce = (key) => (runtime[key] ?? defaults[key] ?? '');
@@ -31,6 +34,7 @@
     googlePlacesApiKey: coalesce('googlePlacesApiKey'),
     scraperApiKey: coalesce('scraperApiKey'),
     sampleReportUrl: coalesce('sampleReportUrl'),
+    plansPageUrl: coalesce('plansPageUrl') || coalesce('planPageUrl'),
     checkoutPrimaryUrl: coalesce('checkoutPrimaryUrl'),
     checkoutSecondaryUrl: coalesce('checkoutSecondaryUrl'),
   };

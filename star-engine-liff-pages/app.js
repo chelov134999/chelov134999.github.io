@@ -20,6 +20,13 @@ const ANALYSIS_TIPS = [
   '等候時可以想好想追蹤的競品，我會一併分析。',
   '選擇語氣後，我會提供貼近門市風格的草稿。'
 ];
+const TRANSITION_TIP_INTERVAL_MS = 1500;
+const TRANSITION_TIPS = [
+  '同步定位商圈與鄰近競品資料…',
+  '抓取最新 Google Maps 評論與風險指標…',
+  '套用您選擇的語氣與優先要務…',
+  '整理趨勢後，將自動載入專屬設定。',
+];
 const DEFAULT_TIMEOUT_NOTE = '資料較多，我會在完成後發送通知。';
 const DATAFORSEO_TIMEOUT_NOTE = '已先交付 Google 資料，評論補齊後會再次通知你。';
 
@@ -87,11 +94,13 @@ const els = {
   timeoutWeekly: document.getElementById('timeout-weekly'),
   timeoutReport: document.getElementById('timeout-report'),
   timeoutNote: document.getElementById('timeout-note'),
+  timeoutCountdown: document.getElementById('timeout-countdown'),
   timeoutBack: document.getElementById('timeout-back'),
   copyActions: document.getElementById('copy-actions'),
   toast: document.getElementById('toast'),
   transitionBar: document.getElementById('transition-bar'),
   transitionCounter: document.getElementById('transition-counter'),
+  transitionTip: document.getElementById('transition-tip'),
   aboutLink: document.getElementById('about-link'),
 };
 
@@ -123,11 +132,14 @@ const state = {
     tipIndex: 0,
     pendingLogged: false,
     completionLogged: false,
+    timeoutCountdownId: null,
+    timeoutStartedAt: 0,
   },
   transition: {
     countdownId: null,
     timeoutId: null,
     started: false,
+    tipId: null,
   },
   report: null,
   psychology: null,
@@ -159,6 +171,36 @@ function updateContextHints() {
     els.summaryContext.textContent = contextText;
     els.summaryContext.hidden = false;
   }
+}
+
+function setTransitionTip(message, hidden = false) {
+  if (!els.transitionTip) return;
+  if (typeof message === 'string') {
+    els.transitionTip.textContent = message;
+  }
+  els.transitionTip.hidden = hidden;
+}
+
+function stopTransitionTips() {
+  if (state.transition.tipId) {
+    clearInterval(state.transition.tipId);
+    state.transition.tipId = null;
+  }
+  setTransitionTip('智能體正在準備提示…', true);
+}
+
+function startTransitionTips() {
+  if (!els.transitionTip || !TRANSITION_TIPS.length) return;
+  stopTransitionTips();
+  let index = 0;
+  setTransitionTip(TRANSITION_TIPS[index], false);
+  if (TRANSITION_TIPS.length === 1) {
+    return;
+  }
+  state.transition.tipId = setInterval(() => {
+    index = (index + 1) % TRANSITION_TIPS.length;
+    setTransitionTip(TRANSITION_TIPS[index], false);
+  }, TRANSITION_TIP_INTERVAL_MS);
 }
 
 function buildUrlWithParams(baseUrl, params = {}) {
@@ -334,6 +376,54 @@ function mergeContextArray(prev = [], next = []) {
   return Array.from(set);
 }
 
+function startTimeoutCountdown(durationSeconds = 60) {
+  if (!els.timeoutCountdown) return;
+  stopTimeoutCountdown();
+  state.progress.timeoutStartedAt = Date.now();
+  let remaining = Math.max(0, Math.floor(durationSeconds));
+
+  const updateLabel = () => {
+    if (!els.timeoutCountdown) return;
+    els.timeoutCountdown.textContent = remaining > 0
+      ? `已排程推送，預估 ${remaining} 秒內完成 LINE 通知。`
+      : '已排程推送，請留意稍後的 LINE 通知。';
+    els.timeoutCountdown.hidden = false;
+  };
+
+  updateLabel();
+
+  if (remaining === 0) {
+    state.progress.timeoutCountdownId = null;
+    return;
+  }
+
+  state.progress.timeoutCountdownId = setInterval(() => {
+    remaining -= 1;
+    if (remaining <= 0) {
+      remaining = 0;
+      updateLabel();
+      if (state.progress.timeoutCountdownId) {
+        clearInterval(state.progress.timeoutCountdownId);
+        state.progress.timeoutCountdownId = null;
+      }
+      return;
+    }
+    updateLabel();
+  }, 1000);
+}
+
+function stopTimeoutCountdown() {
+  if (state.progress.timeoutCountdownId) {
+    clearInterval(state.progress.timeoutCountdownId);
+    state.progress.timeoutCountdownId = null;
+  }
+  state.progress.timeoutStartedAt = 0;
+  if (els.timeoutCountdown) {
+    els.timeoutCountdown.textContent = '';
+    els.timeoutCountdown.hidden = true;
+  }
+}
+
 function updateTimeoutUI() {
   if (!els.timeoutNote) return;
   const context = state.timeoutContext || {};
@@ -426,6 +516,8 @@ function stopProgressTimers() {
   }
   state.transition.started = false;
   stopAnalysisCountdown();
+  stopTransitionTips();
+  stopTimeoutCountdown();
 }
 
 async function initLiff() {
@@ -575,6 +667,7 @@ async function handleLeadSubmit(event) {
       state.progress.messageId = null;
     }
     state.transition.started = false;
+    stopTransitionTips();
     state.leadId = '';
     state.leadPayload = null;
     state.quiz = { goal: '', tone: [], competitorsInput: [], skipped: false };
@@ -595,6 +688,7 @@ function startTransitionToQuiz() {
   }
 
   state.transition.started = true;
+  startTransitionTips();
 
   if (els.transitionBar) {
     els.transitionBar.style.transition = 'none';
@@ -621,6 +715,7 @@ function startTransitionToQuiz() {
   }
 
   state.transition.timeoutId = setTimeout(() => {
+    stopTransitionTips();
     setStage('s2');
     els.submitBtn.disabled = false;
     els.submitBtn.textContent = '啟動 AI 初檢';
@@ -783,6 +878,7 @@ function startPolling() {
     state.progress.pendingLogged = true;
   }
   stopAnalysisCountdown();
+  stopTimeoutCountdown();
   startAnalysisCountdown();
   state.timeoutContext = {};
   updateTimeoutUI();
@@ -833,11 +929,13 @@ function handleStatusResponse(payload) {
   if (!state.leadId || payload.lead_id !== state.leadId) return;
 
   const stage = (payload.stage || '').toLowerCase();
+  const lifecycleState = (payload.state || '').toLowerCase();
   const percent = typeof payload.percent === 'number' ? payload.percent : state.progress.percent;
   const etaSeconds = typeof payload.eta_seconds === 'number' ? payload.eta_seconds : null;
   const statusValue = typeof payload.status === 'string'
     ? payload.status
     : (payload.status && typeof payload.status === 'object' ? payload.status.state || '' : '');
+  const isComplete = statusValue.toLowerCase() === 'complete' || lifecycleState === 'ready';
   const warnings = Array.isArray(payload.warnings) ? payload.warnings : [];
   const flags = payload.flags || (payload.report && payload.report.flags) || {};
   const stageHints = {
@@ -850,6 +948,7 @@ function handleStatusResponse(payload) {
   };
 
   if (stage === 'collecting' && state.stage === 's1') {
+    stopTransitionTips();
     setStage('s2');
   }
 
@@ -897,7 +996,7 @@ function handleStatusResponse(payload) {
     animateFrontProgress(85, 2000);
   }
 
-  if (statusValue === 'complete' && payload.report) {
+  if (isComplete) {
     updateProgressUI(100, 0, stageHints.ready);
     handleAnalysisCompleted({ warnings, flags });
     return;
@@ -908,7 +1007,7 @@ function handleStatusResponse(payload) {
     handleAnalysisCompleted({ warnings, flags });
   } else if (stage === 'scheduled' || stage === 'timeout') {
     triggerTimeout({ warnings, flags });
-  } else if (stage === 'failed') {
+  } else if (stage === 'failed' || statusValue.toLowerCase() === 'failed') {
     showToast('分析失敗，請稍後再試或聯絡支援。');
     triggerTimeout({ warnings, flags });
   }
@@ -1102,6 +1201,7 @@ function triggerTimeout(context = {}) {
     state.progress.timerId = null;
   }
   stopAnalysisCountdown();
+  startTimeoutCountdown();
   updateProgressUI(Math.max(state.progress.percent || 90, 90), null, '資料量較大，已排程推送完成結果');
   if (els.timeoutSample && state.sampleUrl) {
     els.timeoutSample.href = state.sampleUrl;
@@ -1119,7 +1219,7 @@ async function handleWeeklyDraft() {
     return;
   }
   try {
-    await requestJSON(endpoints.weeklyDraft, {
+    const result = await requestJSON(endpoints.weeklyDraft, {
       method: 'POST',
       body: JSON.stringify({
         lead_id: state.leadId,
@@ -1128,8 +1228,15 @@ async function handleWeeklyDraft() {
         goal: state.quiz.goal || 'instant_lowstar',
       }),
     });
+    if (result && result.ok === false) {
+      throw new Error(result.message || '推送失敗');
+    }
     showToast('已推送試算三件事，請查看 LINE。');
   } catch (error) {
+    logEvent('weekly_draft_failed', {
+      lead_id: state.leadId || '',
+      error: error?.message || String(error || ''),
+    });
     showToast(`推送失敗：${error.message}`);
   }
 }
@@ -1158,6 +1265,14 @@ function resetFlow() {
     tipIndex: 0,
     pendingLogged: false,
     completionLogged: false,
+    timeoutCountdownId: null,
+    timeoutStartedAt: 0,
+  };
+  state.transition = {
+    countdownId: null,
+    timeoutId: null,
+    started: false,
+    tipId: null,
   };
   state.report = null;
   state.psychology = null;
