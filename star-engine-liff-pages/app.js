@@ -1069,7 +1069,8 @@ function attachEventListeners() {
   }
 
   if (viewMode === 'about') {
-    window.location.replace('about.html');
+    const target = buildUrlWithParams('about.html', { ts: Date.now() });
+    window.location.replace(target);
     return;
   }
 
