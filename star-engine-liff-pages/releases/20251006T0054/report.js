@@ -177,26 +177,54 @@
     const headers = { 'Content-Type': 'application/json' };
     let url = reportEndpoint;
     let options = { method: 'GET', headers };
+    let fallbackRequest = null;
+
+    const performRequest = async (targetUrl, fetchOptions) => {
+      const response = await fetch(targetUrl, fetchOptions);
+      const text = await response.text();
+      if (!response.ok) {
+        const error = new Error(text || response.statusText);
+        error.status = response.status;
+        error.body = text;
+        error.url = targetUrl;
+        throw error;
+      }
+      return text ? JSON.parse(text) : {};
+    };
 
     if (state.token) {
-      options = {
+      const requestUrl = new URL(reportEndpoint);
+      requestUrl.searchParams.set('token', state.token);
+      url = requestUrl.toString();
+      fallbackRequest = () => performRequest(reportEndpoint, {
         method: 'POST',
         headers,
         body: JSON.stringify({ action: 'getbytoken', token: state.token }),
-      };
+      });
     } else if (state.leadId) {
       const requestUrl = new URL(reportEndpoint);
       requestUrl.searchParams.set('lead_id', state.leadId);
       url = requestUrl.toString();
     }
 
-    const response = await fetch(url, options);
-    const text = await response.text();
-    if (!response.ok) {
-      throw new Error(text || response.statusText);
+    try {
+      return await performRequest(url, options);
+    } catch (error) {
+      const message = (error?.message || '').toLowerCase();
+      const shouldRetryWithFallback = Boolean(
+        fallbackRequest
+        && (error?.status === 404
+          || error?.status === 405
+          || message.includes('not registered for post')
+          || message.includes('unsupported method')),
+      );
+
+      if (shouldRetryWithFallback) {
+        return fallbackRequest();
+      }
+
+      throw error;
     }
-    const payload = text ? JSON.parse(text) : {};
-    return payload;
   }
 
   function validatePayload(payload) {
