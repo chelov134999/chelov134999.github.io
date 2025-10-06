@@ -24,6 +24,101 @@
     return `NT$${number.toLocaleString('zh-Hant-TW')}`;
   }
 
+  function canonicalKey(value) {
+    if (value == null) return '';
+    return String(value).trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
+  function normalizeMetricEntry(entry, fallbackKey = '') {
+    const base = { key: fallbackKey || '', raw: entry };
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      return {
+        ...base,
+        value: entry,
+        label: '',
+        hint: '',
+        target: '',
+      };
+    }
+    const value = entry.value
+      ?? entry.percent
+      ?? entry.percentage
+      ?? entry.score
+      ?? entry.amount
+      ?? entry.metric
+      ?? entry.count
+      ?? entry.number
+      ?? null;
+    return {
+      ...base,
+      value,
+      label: entry.label || entry.title || entry.name || entry.metric_label || '',
+      hint: entry.note || entry.description || entry.detail || entry.hint || '',
+      target: entry.target || entry.competitor || entry.name || entry.store || entry.top_name || '',
+    };
+  }
+
+  function pickMetric(metrics, keys) {
+    if (!metrics) return null;
+    const keyList = (Array.isArray(keys) ? keys : [keys])
+      .map(canonicalKey)
+      .filter(Boolean);
+    if (!keyList.length) return null;
+
+    const matchesKey = (candidate) => {
+      const key = canonicalKey(candidate);
+      return key && keyList.includes(key);
+    };
+
+    if (Array.isArray(metrics)) {
+      for (const item of metrics) {
+        if (!item) continue;
+        const identifiers = [
+          item.id,
+          item.key,
+          item.code,
+          item.slug,
+          item.metric_id,
+          item.metricId,
+          item.name,
+          item.label,
+          item.title,
+        ];
+        for (const identifier of identifiers) {
+          if (matchesKey(identifier)) {
+            return normalizeMetricEntry(item, identifier || '');
+          }
+        }
+        for (const [childKey, childValue] of Object.entries(item)) {
+          if (matchesKey(childKey)) {
+            return normalizeMetricEntry(childValue, childKey);
+          }
+        }
+      }
+      return null;
+    }
+
+    const visited = new Set();
+    const traverse = (obj) => {
+      if (!obj || typeof obj !== 'object' || visited.has(obj)) return null;
+      visited.add(obj);
+      for (const [key, value] of Object.entries(obj)) {
+        if (matchesKey(key)) {
+          return normalizeMetricEntry(value, key);
+        }
+      }
+      for (const value of Object.values(obj)) {
+        if (value && typeof value === 'object') {
+          const found = traverse(value);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    return traverse(metrics);
+  }
+
   function clearContainer(container, emptyMessage) {
     if (!container) return;
     container.innerHTML = '';
@@ -46,7 +141,9 @@
         const deltaLabel = item.delta_label || item.deltaLabel || '';
         const severity = item.severity || item.level || '';
         const currency = item.currency || '';
+        const id = item.id || item.key || item.metric_id || item.metricId || item.slug || item.code || label;
         return {
+          id,
           label,
           value,
           note,
@@ -54,9 +151,11 @@
           deltaLabel,
           severity,
           currency,
+          raw: item,
         };
       }
       return {
+        id: '',
         label: '',
         value: item,
         note: '',
@@ -64,6 +163,7 @@
         deltaLabel: '',
         severity: '',
         currency: '',
+        raw: item,
       };
     });
 
@@ -322,6 +422,7 @@
   ReportUtils.renderDrafts = renderDrafts;
   ReportUtils.formatNumber = formatNumber;
   ReportUtils.formatCurrency = formatCurrency;
+  ReportUtils.pickMetric = pickMetric;
 
   global.ReportUtils = ReportUtils;
 })(window);
