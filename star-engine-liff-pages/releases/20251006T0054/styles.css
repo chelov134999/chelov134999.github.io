@@ -120,6 +120,7 @@ body:not(.page--info) {
   background: #dbe7ff;
   border-radius: 999px;
   overflow: hidden;
+  width: 100%;
   margin-bottom: 18px;
 }
 
@@ -1245,6 +1246,7 @@ body.page--info {
 .report-hero {
   display: grid;
   gap: clamp(18px, 4vw, 28px);
+  width: 100%;
 }
 
 .report-hero-card {
@@ -1259,6 +1261,7 @@ body.page--info {
   border: 1px solid rgba(15, 23, 42, 0.08);
   box-shadow: var(--shadow-card);
   overflow: hidden;
+  width: 100%;
 }
 
 .report-hero-card__media {
@@ -1304,11 +1307,17 @@ body.page--info {
   line-height: 1.7;
 }
 
-.report-preferences {
+
+.report-hero-card--prefs {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 6px;
+  gap: 10px;
+  align-items: center;
+  padding: clamp(18px, 4.6vw, 24px);
+}
+
+.report-hero-card--prefs .report-preferences__item {
+  margin: 0;
 }
 
 .report-preferences__item {
@@ -1932,19 +1941,19 @@ body.page--info {
 
 @media (max-width: 720px) {
   body.page--info {
-    padding: 24px 16px 40px;
+    padding: 20px 12px 36px;
   }
 
   .info-shell {
-    padding: clamp(20px, 6vw, 28px);
+    padding: clamp(16px, 5vw, 24px);
   }
 
   .report-hero {
-    padding: clamp(20px, 6vw, 28px);
+    padding: clamp(16px, 5vw, 24px);
   }
 
   .report-hero__panel {
-    padding: clamp(16px, 5vw, 22px);
+    padding: clamp(14px, 4.6vw, 20px);
   }
 
   .report-hero__kpis {
@@ -1955,7 +1964,7 @@ body.page--info {
 
 @media (max-width: 640px) {
   .info-shell {
-    padding: clamp(18px, 5vw, 28px);
+    padding: clamp(14px, 4.6vw, 22px);
   }
 
   .info-cta .btn {
@@ -1975,11 +1984,11 @@ body.page--info {
 
 @media (max-width: 480px) {
   body.page--info {
-    padding: 20px 14px 36px;
+    padding: 16px 10px 32px;
   }
 
   .info-shell {
-    padding: 20px;
+    padding: 16px;
     border-radius: 24px;
   }
 
@@ -2092,6 +2101,7 @@ body.page--info {
   padding: clamp(22px, 5vw, 30px);
   box-shadow: 0 16px 36px -32px rgba(15, 23, 42, 0.18);
   color: rgba(15, 23, 42, 0.9);
+  width: 100%;
 }
 
 .report-hero-card__avatar {
