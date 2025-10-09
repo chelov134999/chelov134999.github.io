@@ -118,6 +118,7 @@ const state = {
   metricsRaw: null,
   metricsList: [],
   metricTimestamps: {},
+  submitLocked: false,
   tasks: {
     priority_tasks: [],
     collection_steps: [],
@@ -713,6 +714,11 @@ async function handleLeadSubmit(event) {
     return;
   }
 
+  if (state.submitLocked) {
+    showToast('AI 正在檢測中，請稍候完成結果。');
+    return;
+  }
+
   const leadId = generateLeadId();
   const payload = {
     lead_id: leadId,
@@ -739,6 +745,7 @@ async function handleLeadSubmit(event) {
   setStage('s1');
   startTransitionCountdown();
   startPolling();
+  state.submitLocked = true;
 
   if (els.submitBtn) {
     els.submitBtn.disabled = true;
@@ -755,12 +762,9 @@ async function handleLeadSubmit(event) {
     console.error('[lead] submit failed', error);
     showToast(`送出失敗：${error.message}`);
     stopPolling();
-    setStage('s0');
+    state.submitLocked = false;
   } finally {
-    if (els.submitBtn) {
-      els.submitBtn.disabled = false;
-      els.submitBtn.textContent = '申請 AI 入場券';
-    }
+    // 持續鎖定按鈕，待流程完成或超時時再釋放
   }
 }
 
@@ -780,6 +784,7 @@ function handleAnalysisCompleted(context = {}) {
   renderMetricsCards(state.metricsRaw);
   renderTasks(state.tasks);
   setStage('s4');
+  state.submitLocked = false;
   if (context.report_url) {
     state.reportUrlOverride = context.report_url;
   }
@@ -789,6 +794,7 @@ function handleAnalysisCompleted(context = {}) {
 function triggerTimeout(context = {}) {
   clearAnalysisTimeout();
   setStage('s5');
+  state.submitLocked = false;
   const note = context.note || STATUS_HINTS.timeout;
   if (els.timeoutNote) {
     els.timeoutNote.textContent = note;
@@ -907,6 +913,7 @@ function openReport(customUrl) {
 
 function returnHome() {
   window.location.href = formUrl;
+  state.submitLocked = false;
 }
 
 async function initLiff() {
