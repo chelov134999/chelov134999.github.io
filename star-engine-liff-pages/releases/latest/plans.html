@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>守護方案｜星級引擎</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?ts=20251009T1505" />
+</head>
+<body class="page--info">
+  <main class="info-shell">
+    <section class="info-hero-banner">
+      <div class="brand-line">
+        <img class="brand-line__logo" src="logo.png" alt="星級引擎 logo" width="22" height="22" />
+        <span class="brand-line__text">星級引擎｜脈動智匯</span>
+      </div>
+      <p class="info-hero__eyebrow">AI 入場券守護方案</p>
+      <h1>依你的節奏生成正式入場券</h1>
+      <p>選擇每週節奏或當天救援，Cognos 會同時為 Google 與內部團隊準備 AI 雙層前後台，持續維持曝光與評論健康。</p>
+    </section>
+
+    <section class="info-hero-card">
+      <h2>AI 入場券 = AI 雙層前後台</h2>
+      <p>上層品牌小站每天自動生成好評與案例矩陣，堆疊 Google 與 AI 搜尋權重；下層登入儀表板把危機指標、草稿與守護任務集中管理。一次開啟，顧客與團隊會同步看到同樣的節奏。</p>
+    </section>
+
+    <section class="plan-wrapper">
+      <div class="plan-grid">
+        <article class="plan-card plan-card--blue">
+          <h2 class="plan-card__title">方案 A｜每週守護 · 2980/月</h2>
+          <p class="plan-card__subtitle">固定節奏維護口碑，讓 4.5 ★ 成為日常。</p>
+          <p class="plan-card__price">NT$2,980 / 月</p>
+          <ul class="plan-card__benefits">
+            <li>LINE 每週提醒評論零遺漏</li>
+            <li>AI 草稿三語氣 10 分鐘完成</li>
+            <li>紅指標提醒省下 4 小時整理</li>
+          </ul>
+          <p class="plan-card__proof">76% 用戶 8 週內維持在 4.5 ★ 以上。</p>
+          <div class="plan-card__cta">
+            <span class="plan-card__microcopy">適合：想要穩定維護的門市</span>
+            <a class="btn btn--gradient" data-checkout="weekly" href="https://chelov134999.app.n8n.cloud/pay/star-cabin-2980" target="_blank" rel="noopener">開啟守護</a>
+            <span class="plan-card__cta-note">2 分鐘完成設定</span>
+          </div>
+        </article>
+
+        <article class="plan-card plan-card--orange">
+          <h2 class="plan-card__title">方案 B｜當天救援 · 4980/月</h2>
+          <p class="plan-card__subtitle">全面啟動 AI 雙層前後台，危機當天也能守住評分。</p>
+          <p class="plan-card__price">NT$4,980 / 月</p>
+          <span class="plan-card__original">原價 NT$12,000／月</span>
+          <ul class="plan-card__benefits">
+            <li>AI 雷達 10 分鐘警報追蹤</li>
+            <li>品牌小站同步好評推升 SEO</li>
+            <li>AI 顧問排好 30 天修復節奏</li>
+          </ul>
+          <p class="plan-card__proof">前 100 名鎖定終身 NT$4,980／月，之後恢復 NT$12,000。</p>
+          <div class="plan-card__cta">
+            <span class="plan-card__microcopy">適合：需要當天救援與 SEO 推進的品牌</span>
+            <a class="btn btn--gradient" data-checkout="rescue" href="https://chelov134999.app.n8n.cloud/pay/star-guard-4980" target="_blank" rel="noopener">開啟守護</a>
+            <span class="plan-card__cta-note">2 分鐘完成設定</span>
+            <p class="plan-card__footnote">首 100 名享終身價 4,980／月，超過後移除。</p>
+          </div>
+        </article>
+      </div>
+    </section>
+    <div class="info-cta">
+      <a class="btn btn--outline" href="about.html">了解我們的做法</a>
+    </div>
+
+    <p class="info-footer">想先諮詢？寫信至 <a href="mailto:hello@mdzh.io">hello@mdzh.io</a> 或加入 LINE 官方帳號 @star-up。</p>
+  </main>
+
+  <script src="config.runtime.js?ts=20251009T1505"></script>
+  <script src="config.js?ts=20251009T1505"></script>
+  <script>
+    (function attachCheckoutLinks() {
+      const config = window.STAR_ENGINE_CONFIG || {};
+      const weekly = document.querySelector('[data-checkout="weekly"]');
+      const rescue = document.querySelector('[data-checkout="rescue"]');
+      if (weekly && config.checkoutSecondaryUrl) {
+        weekly.href = config.checkoutSecondaryUrl;
+      }
+      if (rescue && config.checkoutPrimaryUrl) {
+        rescue.href = config.checkoutPrimaryUrl;
+      }
+    })();
+  </script>
+</body>
+</html>

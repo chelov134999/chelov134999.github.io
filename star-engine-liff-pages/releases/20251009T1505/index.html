@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>星級引擎｜免費檢測 3 件事</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?ts=20251009T1505" />
+</head>
+<body>
+  <main class="page" id="app">
+    <!-- S0｜資料填寫 -->
+    <section id="stage-s0" class="stage stage--active" data-stage="s0">
+      <div class="stage-panel stage-panel--form">
+        <div class="brand-line">
+          <img src="logo.png" alt="星級引擎" class="brand-line__logo" />
+          <span class="brand-line__text">星級引擎｜脈動智匯</span>
+        </div>
+        <header class="stage-panel__header stage-panel__header--hero">
+          <span class="stage-tag stage-tag--soft">申請 AI 入場券</span>
+        </header>
+
+        <form id="lead-form" class="stage-form" autocomplete="off">
+          <div class="form-intro">
+            <h2 class="form-intro__title">開啟免費檢測 · 建立你的 AI 入場券</h2>
+            <p class="form-intro__description">請一次填好門市資料，我會即時比對評論、可見度與待辦任務。</p>
+          </div>
+          <div class="form-grid">
+            <label class="form-field">
+              <span class="form-label">城市</span>
+              <input id="city" name="city" type="text" placeholder="例如：台北市" required />
+            </label>
+            <label class="form-field">
+              <span class="form-label">路段</span>
+              <input id="route" name="route" type="text" placeholder="例如：信義路四段" required />
+            </label>
+            <label class="form-field">
+              <span class="form-label">門牌</span>
+              <input id="number" name="number" type="text" placeholder="例如：99 號" required />
+            </label>
+            <label class="form-field">
+              <span class="form-label">店名</span>
+              <input id="name" name="name" type="text" placeholder="例如：星級咖啡館" required />
+            </label>
+          </div>
+
+          <button id="cta-start" type="submit" class="btn btn--primary">申請 AI 入場券</button>
+        </form>
+
+        <p class="form-note">請準備好城市、路段、門牌、店名一次填齊。</p>
+      </div>
+    </section>
+
+    <!-- S1｜三秒倒數＋指標預覽 -->
+    <section id="stage-s1" class="stage" data-stage="s1" hidden>
+      <div class="stage-panel stage-panel--transition">
+        <div class="brand-line brand-line--compact">
+          <img src="logo.png" alt="星級引擎" class="brand-line__logo" />
+          <span class="brand-line__text">星級引擎｜脈動智匯</span>
+        </div>
+        <div class="transition-body">
+          <span class="transition-eyebrow">已收到資料</span>
+          <h2>我會為你免費檢測 3 件事</h2>
+          <p class="muted">正在定位門市資料並同步守護任務。</p>
+        </div>
+        <div class="transition-countdown">
+          <span id="transition-counter" class="transition-countdown__number">3</span>
+          <small class="transition-countdown__label">秒內完成初步檢測</small>
+        </div>
+        <div class="transition-metric-grid">
+          <article class="metric-card metric-card--preview" data-metric="review_health" data-stage="preview">
+            <div class="metric-card__icon" aria-hidden="true">🛡️</div>
+            <div class="metric-card__body">
+              <span class="metric-card__label">評價健康</span>
+              <span class="metric-card__score" data-role="score">—</span>
+              <span class="metric-card__state" data-role="state">檢測中</span>
+              <p class="metric-card__hint" data-role="hint">AI 正在分析評論與回覆速度。</p>
+            </div>
+          </article>
+          <article class="metric-card metric-card--preview" data-metric="ai_visibility" data-stage="preview">
+            <div class="metric-card__icon" aria-hidden="true">📡</div>
+            <div class="metric-card__body">
+              <span class="metric-card__label">AI 可見度</span>
+              <span class="metric-card__score" data-role="score">—</span>
+              <span class="metric-card__state" data-role="state">檢測中</span>
+              <p class="metric-card__hint" data-role="hint">AI 正在比對曝光與搜尋表現。</p>
+            </div>
+          </article>
+          <article class="metric-card metric-card--preview" data-metric="pending_reviews" data-stage="preview">
+            <div class="metric-card__icon" aria-hidden="true">📝</div>
+            <div class="metric-card__body">
+              <span class="metric-card__label">待辦評論</span>
+              <span class="metric-card__score" data-role="score">—</span>
+              <span class="metric-card__state" data-role="state">檢測中</span>
+              <p class="metric-card__hint" data-role="hint">AI 正在整理緊急評論與補件清單。</p>
+            </div>
+          </article>
+        </div>
+        <p class="transition-tip" id="transition-tip">AI 正在準備詳細分析…</p>
+      </div>
+    </section>
+
+    <!-- S2｜分析中 → 指標卡 + 守護任務 -->
+    <section id="stage-s2" class="stage" data-stage="s2" hidden>
+      <div class="stage-panel stage-panel--analysis">
+        <div class="brand-line">
+          <img src="logo.png" alt="星級引擎" class="brand-line__logo" />
+          <span class="brand-line__text">星級引擎｜脈動智匯</span>
+        </div>
+        <header class="stage-panel__header stage-panel__header--compact">
+          <h2>免費檢測進行中</h2>
+          <p class="muted" id="analysis-description">AI 正在同步 Google 評論、商圈可見度與待辦任務。</p>
+        </header>
+
+        <div class="analysis-timer" id="analysis-timer" aria-live="polite" hidden>
+          <div class="analysis-timer__clock">
+            <span id="analysis-countdown-number" class="analysis-timer__number">60</span>
+            <small class="analysis-timer__unit">秒</small>
+          </div>
+          <p id="analysis-tip" class="analysis-tip">AI 正在建立守護任務清單…</p>
+        </div>
+
+        <div class="metric-board metric-board--analysis" id="analysis-metric-board">
+          <article class="metric-card" data-metric="review_health" data-stage="analysis">
+            <div class="metric-card__icon" aria-hidden="true">🛡️</div>
+            <div class="metric-card__body">
+              <span class="metric-card__label">評價健康</span>
+              <span class="metric-card__score" data-role="score">—</span>
+              <span class="metric-card__state" data-role="state">整理中</span>
+              <p class="metric-card__hint" data-role="hint">AI 正在檢查低星評論與回覆節奏。</p>
+            </div>
+          </article>
+          <article class="metric-card" data-metric="ai_visibility" data-stage="analysis">
+            <div class="metric-card__icon" aria-hidden="true">📡</div>
+            <div class="metric-card__body">
+              <span class="metric-card__label">AI 可見度</span>
+              <span class="metric-card__score" data-role="score">—</span>
+              <span class="metric-card__state" data-role="state">整理中</span>
+              <p class="metric-card__hint" data-role="hint">AI 正在比對關鍵字與曝光差距。</p>
+            </div>
+          </article>
+          <article class="metric-card" data-metric="pending_reviews" data-stage="analysis">
+            <div class="metric-card__icon" aria-hidden="true">📝</div>
+            <div class="metric-card__body">
+              <span class="metric-card__label">待辦評論</span>
+              <span class="metric-card__score" data-role="score">—</span>
+              <span class="metric-card__state" data-role="state">整理中</span>
+              <p class="metric-card__hint" data-role="hint">AI 正在優先排序守護任務。</p>
+            </div>
+          </article>
+        </div>
+
+        <div class="tasks-board">
+          <section class="task-card" data-task="priority_tasks">
+            <header class="task-card__header">
+              <h3>守護任務（本週三件事）</h3>
+              <span class="task-card__badge">即將完成</span>
+            </header>
+            <ul class="task-list" data-role="list"></ul>
+            <p class="task-empty" data-role="empty">AI 正在整理守護任務。</p>
+          </section>
+          <section class="task-card" data-task="collection_steps">
+            <header class="task-card__header">
+              <h3>資料補件步驟</h3>
+            </header>
+            <ul class="task-list" data-role="list"></ul>
+            <p class="task-empty" data-role="empty">補件清單整理中，稍後指引你補齊缺漏。</p>
+          </section>
+          <section class="task-card" data-task="repair_checklist">
+            <header class="task-card__header">
+              <h3>風險評論清單</h3>
+            </header>
+            <ul class="task-list" data-role="list"></ul>
+            <p class="task-empty" data-role="empty">AI 正在找出需要立即處理的評論。</p>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <!-- S4｜分析完成 → KPI 卡 + 守護任務 -->
+    <section id="stage-s4" class="stage" data-stage="s4" hidden>
+      <div class="stage-panel stage-panel--result">
+        <div class="brand-line brand-line--compact">
+          <img src="logo.png" alt="星級引擎" class="brand-line__logo" />
+          <span class="brand-line__text">星級引擎｜脈動智匯</span>
+        </div>
+        <header class="stage-panel__header stage-panel__header--compact">
+          <h2>免費檢測完成，這是你的三大指標</h2>
+          <p class="muted">已整理守護任務、補件清單與守護專家 CTA。</p>
+        </header>
+
+        <div class="result-warning" id="result-warning" hidden>
+          <strong>提醒：</strong>
+          <span id="result-warning-text"></span>
+        </div>
+
+        <div class="metric-board metric-board--result" id="result-metric-board">
+          <article class="metric-card" data-metric="review_health" data-stage="result">
+            <div class="metric-card__icon" aria-hidden="true">🛡️</div>
+            <div class="metric-card__body">
+              <span class="metric-card__label">評價健康</span>
+              <span class="metric-card__score" data-role="score">—</span>
+              <span class="metric-card__state" data-role="state">—</span>
+              <span class="metric-card__updated" data-role="updated" hidden>更新於 1 分鐘內</span>
+              <p class="metric-card__hint" data-role="hint">AI 已完成評論檢測。</p>
+            </div>
+          </article>
+          <article class="metric-card" data-metric="ai_visibility" data-stage="result">
+            <div class="metric-card__icon" aria-hidden="true">📡</div>
+            <div class="metric-card__body">
+              <span class="metric-card__label">AI 可見度</span>
+              <span class="metric-card__score" data-role="score">—</span>
+              <span class="metric-card__state" data-role="state">—</span>
+              <span class="metric-card__updated" data-role="updated" hidden>更新於 1 分鐘內</span>
+              <p class="metric-card__hint" data-role="hint">AI 已完成搜尋與曝光比對。</p>
+            </div>
+          </article>
+          <article class="metric-card" data-metric="pending_reviews" data-stage="result">
+            <div class="metric-card__icon" aria-hidden="true">📝</div>
+            <div class="metric-card__body">
+              <span class="metric-card__label">待辦評論</span>
+              <span class="metric-card__score" data-role="score">—</span>
+              <span class="metric-card__state" data-role="state">—</span>
+              <span class="metric-card__updated" data-role="updated" hidden>更新於 1 分鐘內</span>
+              <p class="metric-card__hint" data-role="hint">AI 已完成守護任務排序。</p>
+            </div>
+          </article>
+        </div>
+
+        <div class="task-grid">
+          <section class="task-card task-card--result" data-task="priority_tasks">
+            <header class="task-card__header">
+              <h3>守護任務（本週三件事）</h3>
+            </header>
+            <ul class="task-list" data-role="list"></ul>
+            <p class="task-empty" data-role="empty">目前沒有守護任務，保持持續追蹤。</p>
+          </section>
+          <section class="task-card task-card--result" data-task="collection_steps">
+            <header class="task-card__header">
+              <h3>資料補件步驟</h3>
+            </header>
+            <ul class="task-list" data-role="list"></ul>
+            <p class="task-empty" data-role="empty">所有欄位已補齊，等候守護專家更新。</p>
+          </section>
+          <section class="task-card task-card--result" data-task="repair_checklist">
+            <header class="task-card__header">
+              <h3>風險評論清單</h3>
+            </header>
+            <ul class="task-list" data-role="list"></ul>
+            <p class="task-empty" data-role="empty">目前沒有需要立即處理的評論。</p>
+          </section>
+        </div>
+
+        <div class="result-actions">
+          <button id="cta-secondary" type="button" class="btn btn--primary">同步到守護專家</button>
+          <button id="cta-report" type="button" class="btn btn--secondary">查看預審報表</button>
+          <a id="cta-plan" class="btn btn--outline" href="plans.html" target="_blank" rel="noopener">了解守護方案</a>
+          <button id="return-home" type="button" class="btn btn--ghost">返回主畫面</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- S5｜排程或超時 -->
+    <section id="stage-s5" class="stage" data-stage="s5" hidden>
+      <div class="stage-panel stage-panel--timeout">
+        <div class="brand-line brand-line--compact">
+          <img src="logo.png" alt="星級引擎" class="brand-line__logo" />
+          <span class="brand-line__text">星級引擎｜脈動智匯</span>
+        </div>
+        <header class="stage-panel__header">
+          <span class="stage-tag stage-tag--warning">S5 · 已排程完成後推送</span>
+          <h2>資料較多，已自動排程</h2>
+          <p class="muted">完成後我會第一時間發到 LINE。守護任務與補件清單將同步更新。</p>
+        </header>
+
+        <p class="timeout-note" id="timeout-note">資料較多，我會在完成後發送通知。</p>
+        <div class="timeout-actions">
+          <a id="timeout-sample" class="btn btn--primary" href="sample-report.html?ts=20251009T1505" target="_blank" rel="noopener">查看樣本入場券</a>
+          <button id="timeout-weekly" type="button" class="btn btn--outline">先拿守護任務試算</button>
+          <button id="timeout-report" type="button" class="btn btn--ghost" hidden>回到完整報表</button>
+        </div>
+        <p id="timeout-countdown" class="timeout-countdown" hidden></p>
+        <button id="timeout-back" type="button" class="btn btn--ghost">返回主畫面</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer-link">
+    <a href="about.html?ts=20251009T1505" id="about-link">關於我們</a>
+  </footer>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="https://static.line-scdn.net/liff/edge/versions/2.21.2/sdk.js"></script>
+  <script src="config.runtime.js?ts=20251009T1505"></script>
+  <script src="config.js?ts=20251009T1505"></script>
+  <script src="report-utils.js?ts=20251009T1505"></script>
+  <script src="analytics.js?ts=20251009T1505"></script>
+  <script src="app.js?ts=20251009T1505"></script>
+</body>
+</html>
