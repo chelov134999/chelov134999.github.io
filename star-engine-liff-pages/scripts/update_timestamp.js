@@ -90,6 +90,31 @@ copyPairs.forEach(([source, dest]) => {
   fs.copyFileSync(srcPath, destPath);
 });
 
+const replaceInFile = (filePath, replacements) => {
+  if (!fs.existsSync(filePath)) {
+    return false;
+  }
+  let content = fs.readFileSync(filePath, 'utf8');
+  let mutated = content;
+  replacements.forEach(([pattern, value]) => {
+    mutated = mutated.replace(pattern, value);
+  });
+  if (mutated !== content) {
+    fs.writeFileSync(filePath, mutated);
+    return true;
+  }
+  return false;
+};
+
+const releaseConfigTargets = [
+  path.join(releaseDir, 'config.js'),
+  path.join(releaseDir, 'config.runtime.js'),
+];
+
+releaseConfigTargets.forEach((target) => {
+  replaceInFile(target, [[/releases\/latest/g, `releases/${timestamp}`]]);
+});
+
 const latestDir = path.join(releasesRoot, 'latest');
 try {
   fs.rmSync(latestDir, { recursive: true, force: true });
@@ -98,6 +123,15 @@ try {
 } catch (error) {
   console.warn(`[update_timestamp] 更新 latest 快照時發生錯誤：${error.message || error}`);
 }
+
+const latestConfigTargets = [
+  path.join(latestDir, 'config.js'),
+  path.join(latestDir, 'config.runtime.js'),
+];
+
+latestConfigTargets.forEach((target) => {
+  replaceInFile(target, [[/releases\/20\d{6}T\d{4}/g, 'releases/latest']]);
+});
 
 const releaseDirs = fs
   .readdirSync(releasesRoot, { withFileTypes: true })
