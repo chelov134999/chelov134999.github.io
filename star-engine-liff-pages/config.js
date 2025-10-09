@@ -9,11 +9,14 @@
     analysisStatusUrl: 'https://chelov134999.app.n8n.cloud/webhook/analysis-status',
     weeklyDraftUrl: 'https://chelov134999.app.n8n.cloud/webhook/weekly-draft',
     reportEndpoint: 'https://chelov134999.app.n8n.cloud/webhook/report-data',
-    reportUrl: 'https://chelov134999.github.io/star-engine-liff-pages/report.html?ts=20251005c',
+    formUrl: 'https://chelov134999.github.io/star-engine-liff-pages/releases/20251009T1505/index.html?ts=20251009T1505',
+    reportUrl: 'https://chelov134999.github.io/star-engine-liff-pages/releases/20251009T1505/report.html?ts=20251009T1505',
     trialUrl: 'https://line.me/ti/p/@star-up',
-    aboutUrl: 'https://chelov134999.github.io/star-engine-liff-pages/about.html?ts=20251005c',
-    sampleReportUrl: 'https://chelov134999.github.io/star-engine-liff-pages/sample-report.html?ts=20251005c',
-    plansPageUrl: 'https://chelov134999.github.io/star-engine-liff-pages/plans.html?ts=20251005c',
+    aboutUrl: 'https://chelov134999.github.io/star-engine-liff-pages/releases/20251009T1505/about.html?ts=20251009T1505',
+    sampleReportUrl: 'https://chelov134999.github.io/star-engine-liff-pages/releases/20251009T1505/sample-report.html?ts=20251009T1505',
+    plansPageUrl: 'https://chelov134999.github.io/star-engine-liff-pages/releases/20251009T1505/plans.html?ts=20251009T1505',
+    assistantLabel: '生成正式入場券',
+    assistantEntryUrl: 'https://chelov134999.app.n8n.cloud/webhook/assistant-entry',
   };
 
   const coalesce = (key) => (runtime[key] ?? defaults[key] ?? '');
@@ -37,6 +40,8 @@
     plansPageUrl: coalesce('plansPageUrl') || coalesce('planPageUrl'),
     checkoutPrimaryUrl: coalesce('checkoutPrimaryUrl'),
     checkoutSecondaryUrl: coalesce('checkoutSecondaryUrl'),
+    assistantLabel: coalesce('assistantLabel') || 'AI 守護專家',
+    assistantEntryUrl: coalesce('assistantEntryUrl') || coalesce('assistant_entry_url'),
   };
 
   const missing = Object.entries({

@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI 入場券｜星級引擎預覽模板</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+      color: #0f172a;
+      background: #f8fbff;
+      line-height: 1.6;
+    }
+
+    body {
+      margin: 0;
+    }
+
+    .shell {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 48px 20px 80px;
+    }
+
+    header.hero {
+      background: linear-gradient(135deg, rgba(219, 234, 254, 0.95) 0%, rgba(191, 219, 254, 0.85) 100%);
+      padding: 48px;
+      border-radius: 28px;
+      box-shadow: 0 40px 80px -60px rgba(37, 99, 235, 0.35);
+      margin-bottom: 48px;
+      display: grid;
+      gap: 32px;
+    }
+
+    .hero-intro {
+      display: grid;
+      gap: 12px;
+    }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, 0.14);
+      color: rgba(37, 99, 235, 0.85);
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(2.1rem, 4.4vw, 2.9rem);
+      line-height: 1.25;
+    }
+
+    .hero p {
+      margin: 0;
+      color: rgba(15, 23, 42, 0.74);
+      font-size: 1.05rem;
+    }
+
+    .hero-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .hero-dashboard {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .hero-card {
+      display: grid;
+      gap: 12px;
+      padding: 24px;
+      border-radius: 22px;
+      border: 1px solid rgba(37, 99, 235, 0.2);
+      background: #ffffff;
+      box-shadow: 0 26px 48px -34px rgba(15, 23, 42, 0.28);
+    }
+
+    .hero-card__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(37, 99, 235, 0.82);
+    }
+
+    .hero-card__state {
+      font-weight: 600;
+      color: rgba(30, 64, 175, 0.92);
+    }
+
+    .hero-card__score {
+      font-size: clamp(1.9rem, 3.6vw, 2.5rem);
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .hero-card__hint,
+    .hero-card__next {
+      margin: 0;
+      font-size: 0.95rem;
+      color: rgba(15, 23, 42, 0.68);
+    }
+
+    .hero-card__next {
+      color: rgba(30, 64, 175, 0.88);
+      font-weight: 600;
+    }
+
+    .hero-card--ready {
+      border-color: rgba(22, 163, 74, 0.28);
+      background: linear-gradient(135deg, rgba(187, 247, 208, 0.45) 0%, rgba(134, 239, 172, 0.32) 100%);
+    }
+
+    .hero-card--warn {
+      border-color: rgba(245, 158, 11, 0.3);
+      background: linear-gradient(135deg, rgba(253, 230, 138, 0.4) 0%, rgba(254, 249, 195, 0.32) 100%);
+    }
+
+    .hero-card--risk {
+      border-color: rgba(239, 68, 68, 0.3);
+      background: linear-gradient(135deg, rgba(254, 202, 202, 0.45) 0%, rgba(254, 226, 226, 0.36) 100%);
+    }
+
+    .hero-status {
+      display: grid;
+      gap: 14px;
+      padding: 28px;
+      border-radius: 24px;
+      border: 1px solid rgba(37, 99, 235, 0.2);
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.16) 0%, rgba(56, 189, 248, 0.12) 100%);
+      box-shadow: 0 26px 48px -34px rgba(30, 64, 175, 0.28);
+    }
+
+    .hero-status__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hero-status__label {
+      font-size: 0.82rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(30, 64, 175, 0.88);
+    }
+
+    .hero-status__state {
+      font-weight: 600;
+      color: rgba(30, 64, 175, 0.95);
+    }
+
+    .hero-status__primary {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: rgba(30, 64, 175, 0.95);
+    }
+
+    .hero-status__steps {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 8px;
+      color: rgba(15, 23, 42, 0.78);
+      font-size: 0.95rem;
+    }
+
+    .hero-status__steps li {
+      position: relative;
+      padding-left: 18px;
+    }
+
+    .hero-status__steps li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.55em;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(30, 64, 175, 0.85);
+    }
+
+    .hero-status__note {
+      margin: 0;
+      font-size: 0.9rem;
+      color: rgba(30, 64, 175, 0.7);
+    }
+
+    .hero .cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 24px;
+      border-radius: 14px;
+      background: #1d4ed8;
+      color: #fff;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 0.18s ease, box-shadow 0.2s ease;
+    }
+
+    .hero .cta:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 30px -24px rgba(29, 78, 216, 0.55);
+    }
+
+    section {
+      margin-bottom: 56px;
+    }
+
+    h2 {
+      font-size: 1.6rem;
+      margin-bottom: 18px;
+    }
+
+    .value-list,
+    .latest-list,
+    .faq-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 16px;
+    }
+
+    .value-list li,
+    .latest-list li,
+    .faq-list li {
+      background: #fff;
+      border-radius: 18px;
+      padding: 20px 24px;
+      box-shadow: 0 22px 48px -40px rgba(15, 23, 42, 0.25);
+      border: 1px solid rgba(15, 23, 42, 0.05);
+    }
+
+    .latest-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      color: rgba(15, 23, 42, 0.62);
+      margin-bottom: 6px;
+    }
+
+    details summary {
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    footer {
+      margin-top: 72px;
+      font-size: 0.85rem;
+      color: rgba(15, 23, 42, 0.52);
+      text-align: center;
+    }
+
+    @media (max-width: 960px) {
+      header.hero {
+        padding: 40px 32px;
+      }
+
+      .hero-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-status {
+        order: -1;
+      }
+    }
+
+    @media (max-width: 640px) {
+      header.hero {
+        padding: 32px 24px;
+      }
+
+      .hero-dashboard {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="hero">
+      <div class="hero-intro">
+        <span class="hero-tag">AI 入場券預審</span>
+        <h1>你的 AI 入場券預審儀表板（模板示意）</h1>
+        <p>以下內容為靜態示意，實際資料將由後端注入並同步到 LINE。</p>
+      </div>
+      <div class="hero-layout">
+        <div class="hero-dashboard">
+          <article class="hero-card hero-card--ready">
+            <header class="hero-card__header">
+              <span>Schema</span>
+              <span class="hero-card__state">可簽發</span>
+            </header>
+            <strong class="hero-card__score">92</strong>
+            <p class="hero-card__hint">資料完整，AI 已完成結構化檢核。</p>
+            <p class="hero-card__next">下一步：同步 LINE 官方帳號與營業時間。</p>
+          </article>
+          <article class="hero-card hero-card--warn">
+            <header class="hero-card__header">
+              <span>AI 可見度</span>
+              <span class="hero-card__state">檢核中</span>
+            </header>
+            <strong class="hero-card__score">74</strong>
+            <p class="hero-card__hint">搜尋曝光接近競品，需要補強素材。</p>
+            <p class="hero-card__next">下一步：上傳 5 張入口與招牌照片。</p>
+          </article>
+          <article class="hero-card hero-card--risk">
+            <header class="hero-card__header">
+              <span>評論健康</span>
+              <span class="hero-card__state">暫停曝光</span>
+            </header>
+            <strong class="hero-card__score">48</strong>
+            <p class="hero-card__hint">近 7 天低評上升，需要立即處理。</p>
+            <p class="hero-card__next">下一步：回覆 3 則低評並啟用安撫腳本。</p>
+          </article>
+        </div>
+        <aside class="hero-status">
+          <div class="hero-status__header">
+            <span class="hero-status__label">入場券狀態</span>
+            <span class="hero-status__state">檢核中</span>
+          </div>
+          <p class="hero-status__primary">AI 正在生成正式入場券，補齊黃色與紅色指標即可簽發。</p>
+          <ul class="hero-status__steps">
+            <li>補齊 Schema 缺漏欄位並確認門市資訊。</li>
+            <li>啟動 AI 回覆草稿，先處理低評。</li>
+            <li>與守護專家確認投放節奏。</li>
+          </ul>
+          <p class="hero-status__note">此區由後端注入實際狀態與提醒。</p>
+          <a class="cta" href="#">預約守護顧問</a>
+        </aside>
+      </div>
+    </header>
+
+    <section>
+      <h2>入場券能帶來什麼？</h2>
+      <ul class="value-list">
+        <li>
+          <strong>Schema 結構分數</strong>
+          <p>偵測您的 Google 商家資料是否完整，缺漏欄位將在入場券中提出修復建議。</p>
+        </li>
+        <li>
+          <strong>AI 可見度</strong>
+          <p>結合競品距離、搜尋曝光與評論速度，衡量在地搜尋的出現機率。</p>
+        </li>
+        <li>
+          <strong>評論健康</strong>
+          <p>自動分類正負評論與關鍵字，估算流失風險並給出本週三件守護事項。</p>
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>最新三件事（假資料示意）</h2>
+      <ul class="latest-list">
+        <li>
+          <div class="latest-meta">
+            <span>2025-10-07</span>
+            <span>AI 可見度 +6%</span>
+          </div>
+          <p>完成 Schema 填補並新增 25 張菜單照片，搜尋點擊率連續 3 週成長。</p>
+        </li>
+        <li>
+          <div class="latest-meta">
+            <span>2025-10-01</span>
+            <span>評論健康 穩定</span>
+          </div>
+          <p>上週 18 筆評論已回覆，AI 建議本週聚焦「候位體驗」關鍵字的回覆語氣。</p>
+        </li>
+        <li>
+          <div class="latest-meta">
+            <span>2025-09-24</span>
+            <span>Schema 90 分</span>
+          </div>
+          <p>完成品牌敘述更新與 LINE 官方帳號連結，比對競品後獲得 2 份客製守護方案。</p>
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>常見問題</h2>
+      <ul class="faq-list">
+        <li>
+          <details>
+            <summary>入場券多久會生成？</summary>
+            <p>遞交資料後約 60 秒可看到預覽，正式版本會於完成後推播到 LINE。</p>
+          </details>
+        </li>
+        <li>
+          <details>
+            <summary>需要付費才能查看嗎？</summary>
+            <p>預覽版免費，若想持續守護則可升級 AI 守護方案，會由顧問與自動化流程接手。</p>
+          </details>
+        </li>
+        <li>
+          <details>
+            <summary>可以指定顧問處理嗎？</summary>
+            <p>正式入場券會附上顧問指派資訊，若有特別需求可在 LINE 聯繫專人協助。</p>
+          </details>
+        </li>
+      </ul>
+    </section>
+
+    <footer>
+      <p>此頁面為 AI 入場券公開模板示意，實際資料將由後端自動注入。</p>
+    </footer>
+  </div>
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": "星級引擎 AI 入場券",
+      "description": "AI 協助蒐集 Schema、競品與評論資料，生成入場券預覽與守護建議。",
+      "brand": {
+        "@type": "Brand",
+        "name": "星級引擎"
+      },
+      "offers": {
+        "@type": "Offer",
+        "priceCurrency": "TWD",
+        "price": "0",
+        "availability": "https://schema.org/PreOrder",
+        "url": "https://example.com/entry-pass"
+      },
+      "audience": {
+        "@type": "BusinessAudience",
+        "businessAudienceType": "Cafe & Restaurant"
+      }
+    }
+  </script>
+</body>
+</html>
