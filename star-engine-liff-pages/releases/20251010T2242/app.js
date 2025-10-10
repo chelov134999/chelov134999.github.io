@@ -119,6 +119,7 @@ const state = {
   metricsList: [],
   metricTimestamps: {},
   pollTimer: null,
+  pollDebounceId: null,
   submitLocked: false,
   tasks: {
     priority_tasks: [],
@@ -138,9 +139,14 @@ const state = {
   reportUrlOverride: '',
 };
 
+const externalLogEvent =
+  typeof window !== 'undefined' && typeof window.logEvent === 'function'
+    ? window.logEvent.bind(window)
+    : null;
+
 function logEvent(...args) {
-  if (typeof window.logEvent === 'function') {
-    window.logEvent(...args);
+  if (externalLogEvent) {
+    externalLogEvent(...args);
   }
 }
 
@@ -544,7 +550,7 @@ function stopAnalysisCountdown() {
   state.analysisRemaining = 0;
   state.analysisTipIndex = 0;
   if (els.analysisTimer) {
-    els.analysisTimer.hidden = true;
+    els.analysisTimer.hidden = false;
   }
 }
 
@@ -578,10 +584,10 @@ function startAnalysisCountdown() {
     state.analysisRemaining = Math.ceil(remainingMs / 1000);
     updateAnalysisCountdown();
     if (remainingMs <= 0) {
+      state.analysisRemaining = 0;
+      updateAnalysisCountdown();
       stopAnalysisCountdown();
-      if (state.stage !== 's4' && state.stage !== 's5') {
-        triggerTimeout({ reason: 'countdown_expired' });
-      }
+      state.analysisCountdownFrameId = null;
       return;
     }
     state.analysisCountdownFrameId = requestAnimationFrame(tick);
@@ -594,10 +600,9 @@ function startAnalysisCountdown() {
       state.analysisRemaining -= 1;
       updateAnalysisCountdown();
       if (state.analysisRemaining <= 0) {
+        state.analysisRemaining = 0;
+        updateAnalysisCountdown();
         stopAnalysisCountdown();
-        if (state.stage !== 's4' && state.stage !== 's5') {
-          triggerTimeout({ reason: 'countdown_expired' });
-        }
       }
     }, 1000);
   }
@@ -610,9 +615,13 @@ function startAnalysisCountdown() {
 }
 
 function clearPollingInterval() {
-  if (state.pollTimer) {
+  if (state.pollTimer !== null) {
     clearTimeout(state.pollTimer);
-    state.pollTimer = null;
+  }
+  state.pollTimer = null;
+  if (state.pollDebounceId) {
+    clearTimeout(state.pollDebounceId);
+    state.pollDebounceId = null;
   }
 }
 
@@ -642,11 +651,16 @@ function startPolling() {
       console.warn('[analysis-status]', error.message || error);
     } finally {
       if (state.pollTimer !== null) {
+        clearTimeout(state.pollTimer);
         state.pollTimer = setTimeout(poll, POLL_INTERVAL_MS);
       }
     }
   };
-  state.pollTimer = 0; // sentinel 表示輪詢啟用
+  state.pollTimer = setTimeout(() => {}, 0); // kick off timer chain
+  if (state.pollDebounceId) {
+    clearTimeout(state.pollDebounceId);
+    state.pollDebounceId = null;
+  }
   poll();
   state.timeoutId = setTimeout(() => {
     if (state.stage !== 's4' && state.stage !== 's5') {

@@ -12,7 +12,7 @@ const formUrl = config.formUrl || config.form_url || window.location.href;
 const plansPageUrl = config.plansPageUrl || config.planPageUrl || 'plans.html';
 const sampleReportUrl = config.sampleReportUrl || 'sample-report.html';
 
-const ANALYSIS_COUNTDOWN_SECONDS = 15;
+const ANALYSIS_COUNTDOWN_SECONDS = 30;
 const TRANSITION_SECONDS = 2;
 const ANALYSIS_TIMEOUT_MS = 75 * 1000;
 const POLL_INTERVAL_MS = 5000;
@@ -28,7 +28,12 @@ const STATUS_HINTS = {
   scheduled: '資料量較大，AI 正在排程生成入場券。',
   timeout: '資料量較大，完成後會自動推播。',
   ready: '分析完成，整理報告中。',
+  ready_partial: 'AI 已完成速查版，完整報告生成中。',
+  partial: 'AI 已完成速查版，完整報告生成中。',
 };
+
+const PARTIAL_NOTICE_TEXT = '目前是速查版，完整資料生成後自動更新';
+const REPORT_CTA_PARTIAL_TEXT = '資料補齊中…';
 
 const METRIC_STATE_PRESETS = {
   good: { label: '狀態良好', hint: '保持目前節奏即可。', icon: '🟢' },
@@ -96,6 +101,8 @@ const els = {
   analysisTip: document.getElementById('analysis-tip') || document.getElementById('progress-tip'),
   resultWarning: document.getElementById('result-warning'),
   resultWarningText: document.getElementById('result-warning-text'),
+  resultPartial: document.getElementById('result-partial'),
+  resultPartialText: document.getElementById('result-partial-text'),
   ctaSecondary: document.getElementById('cta-secondary'),
   ctaReport: document.getElementById('cta-report'),
   ctaPlan: document.getElementById('cta-plan'),
@@ -137,11 +144,18 @@ const state = {
   analysisTipIndex: 0,
   warnings: [],
   reportUrlOverride: '',
+  isPartialResult: false,
+  defaultReportCtaText: (els.ctaReport && els.ctaReport.textContent) || '查看預審報表',
 };
 
+const externalLogEvent =
+  typeof window !== 'undefined' && typeof window.logEvent === 'function'
+    ? window.logEvent.bind(window)
+    : null;
+
 function logEvent(...args) {
-  if (typeof window.logEvent === 'function') {
-    window.logEvent(...args);
+  if (externalLogEvent) {
+    externalLogEvent(...args);
   }
 }
 
@@ -499,6 +513,31 @@ function updateResultWarning(warnings = []) {
   els.resultWarningText.textContent = warnings.join('、');
 }
 
+function setPartialResultMode(enabled) {
+  if (els.resultPartialText) {
+    els.resultPartialText.textContent = PARTIAL_NOTICE_TEXT;
+  }
+
+  if (els.resultPartial) {
+    els.resultPartial.hidden = !enabled;
+  }
+
+  if (els.ctaReport) {
+    if (state.defaultReportCtaText == null && els.ctaReport.textContent) {
+      state.defaultReportCtaText = els.ctaReport.textContent;
+    }
+    if (enabled) {
+      els.ctaReport.disabled = true;
+      els.ctaReport.textContent = REPORT_CTA_PARTIAL_TEXT;
+    } else {
+      els.ctaReport.disabled = false;
+      els.ctaReport.textContent = state.defaultReportCtaText || '查看預審報表';
+    }
+  }
+
+  state.isPartialResult = enabled;
+}
+
 function stopTransitionCountdown() {
   if (state.transitionId) {
     clearInterval(state.transitionId);
@@ -754,6 +793,7 @@ async function handleLeadSubmit(event) {
   state.metricsRaw = null;
   state.metricsList = [];
   state.metricTimestamps = {};
+  setPartialResultMode(false);
   renderMetricsCards([]);
   renderTasks({});
   syncLinks();
@@ -794,10 +834,16 @@ function applyStatusHints(stage = '') {
 }
 
 function handleAnalysisCompleted(context = {}) {
+  const isPartial = Boolean(context.partial);
   state.submitLocked = false;
   stopAnalysisCountdown();
-  stopPolling();
+  if (isPartial) {
+    clearAnalysisTimeout();
+  } else {
+    stopPolling();
+  }
   setStage('s4');
+  setPartialResultMode(isPartial);
   updateResultWarning(context.warnings || state.warnings);
   renderMetricsCards(state.metricsRaw);
   renderTasks(state.tasks);
@@ -809,6 +855,7 @@ function handleAnalysisCompleted(context = {}) {
 function triggerTimeout(context = {}) {
   clearAnalysisTimeout();
   setStage('s5');
+  setPartialResultMode(false);
   state.submitLocked = false;
   const note = context.note || STATUS_HINTS.timeout;
   if (els.timeoutNote) {
@@ -865,8 +912,16 @@ function handleStatusResponse(payload) {
     return;
   }
 
-  if (statusValue === 'ready' || statusValue === 'complete' || stageValue === 'ready' || stageValue === 'complete') {
-    handleAnalysisCompleted({ warnings: state.warnings, report_url: payload.report_url });
+  const isPartial = statusValue === 'partial' || statusValue === 'ready_partial' || stageValue === 'partial' || stageValue === 'ready_partial';
+  const isComplete = statusValue === 'ready' || statusValue === 'complete' || stageValue === 'ready' || stageValue === 'complete';
+
+  if (isPartial) {
+    handleAnalysisCompleted({ warnings: state.warnings, report_url: payload.report_url, partial: true });
+    return;
+  }
+
+  if (isComplete) {
+    handleAnalysisCompleted({ warnings: state.warnings, report_url: payload.report_url, partial: false });
     return;
   }
 }
@@ -918,7 +973,15 @@ async function handleAssistantEntry() {
 }
 
 function openReport(customUrl) {
+  if (state.isPartialResult && !customUrl) {
+    showToast('資料補齊中，完整報告稍後自動更新。');
+    return;
+  }
   const base = customUrl || state.reportUrlOverride || reportUrlBase;
+  if (!base) {
+    showToast('報告尚未生成，請稍後再試。');
+    return;
+  }
   const target = buildUrlWithParams(base, {
     lead_id: state.leadId,
     token: state.reportToken,
@@ -986,6 +1049,7 @@ function syncLinks() {
 function bootstrap() {
   bindEvents();
   initLiff();
+  setPartialResultMode(false);
   renderMetricsCards([]);
   renderTasks({});
   updateResultWarning([]);
