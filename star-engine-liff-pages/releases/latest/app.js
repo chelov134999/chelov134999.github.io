@@ -12,8 +12,8 @@ const formUrl = config.formUrl || config.form_url || window.location.href;
 const plansPageUrl = config.plansPageUrl || config.planPageUrl || 'plans.html';
 const sampleReportUrl = config.sampleReportUrl || 'sample-report.html';
 
-const ANALYSIS_COUNTDOWN_SECONDS = 60;
-const TRANSITION_SECONDS = 3;
+const ANALYSIS_COUNTDOWN_SECONDS = 15;
+const TRANSITION_SECONDS = 2;
 const ANALYSIS_TIMEOUT_MS = 75 * 1000;
 const POLL_INTERVAL_MS = 5000;
 const ANALYSIS_TIPS = [
@@ -785,16 +785,16 @@ function applyStatusHints(stage = '') {
 }
 
 function handleAnalysisCompleted(context = {}) {
-  clearAnalysisTimeout();
+  state.submitLocked = false;
+  stopAnalysisCountdown();
+  stopPolling();
+  setStage('s4');
   updateResultWarning(context.warnings || state.warnings);
   renderMetricsCards(state.metricsRaw);
   renderTasks(state.tasks);
-  setStage('s4');
-  state.submitLocked = false;
   if (context.report_url) {
     state.reportUrlOverride = context.report_url;
   }
-  clearPollingInterval();
 }
 
 function triggerTimeout(context = {}) {
