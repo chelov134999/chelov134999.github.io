@@ -118,6 +118,7 @@ const state = {
   metricsRaw: null,
   metricsList: [],
   metricTimestamps: {},
+  pollTimer: null,
   submitLocked: false,
   tasks: {
     priority_tasks: [],
@@ -609,9 +610,9 @@ function startAnalysisCountdown() {
 }
 
 function clearPollingInterval() {
-  if (state.pollId) {
-    clearInterval(state.pollId);
-    state.pollId = null;
+  if (state.pollTimer) {
+    clearTimeout(state.pollTimer);
+    state.pollTimer = null;
   }
 }
 
@@ -634,14 +635,19 @@ function startPolling() {
     try {
       const url = new URL(endpoints.analysisStatus);
       url.searchParams.set('lead_id', state.leadId);
+      url.searchParams.set('_', Date.now().toString());
       const payload = await requestJSON(url.toString(), { method: 'GET' });
       handleStatusResponse(payload);
     } catch (error) {
       console.warn('[analysis-status]', error.message || error);
+    } finally {
+      if (state.pollTimer !== null) {
+        state.pollTimer = setTimeout(poll, POLL_INTERVAL_MS);
+      }
     }
   };
+  state.pollTimer = 0; // sentinel 表示輪詢啟用
   poll();
-  state.pollId = setInterval(poll, POLL_INTERVAL_MS);
   state.timeoutId = setTimeout(() => {
     if (state.stage !== 's4' && state.stage !== 's5') {
       triggerTimeout({ reason: 'timeout' });
