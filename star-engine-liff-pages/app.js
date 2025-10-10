@@ -32,8 +32,23 @@ const STATUS_HINTS = {
   partial: 'AI 已完成速查版，完整報告生成中。',
 };
 
-const PARTIAL_NOTICE_TEXT = '目前是速查版，完整資料生成後自動更新';
+const PARTIAL_NOTICE_TEXT = '目前是速查版，資料補齊中，完整資料生成後自動更新';
+const PARTIAL_LIVE_FALLBACK_TEXT = '目前以 Live fallback 顯示重點，資料補齊中，完整報告稍後自動更新';
 const REPORT_CTA_PARTIAL_TEXT = '資料補齊中…';
+const DEFAULT_PARTIAL_CARDS = [
+  {
+    id: 'structured_site',
+    title: '結構化網站生成中',
+    description: 'AI 正在整理門市資訊，建立速查版展示頁並同步資料結構。',
+    icon: '🧱',
+  },
+  {
+    id: 'guardian_intro',
+    title: '守護任務排程',
+    description: '守護專家持續整理評論、曝光與任務優先順序，完整清單稍後送達。',
+    icon: '🛡️',
+  },
+];
 
 const METRIC_STATE_PRESETS = {
   good: { label: '狀態良好', hint: '保持目前節奏即可。', icon: '🟢' },
@@ -78,9 +93,18 @@ const METRIC_DEFINITIONS = {
 };
 
 const TASK_SECTION_CONFIG = {
-  priority_tasks: { emptyText: 'AI 正在整理守護任務。' },
-  collection_steps: { emptyText: '補件清單整理中，稍後指引你補齊缺漏。' },
-  repair_checklist: { emptyText: '目前沒有需要立即補救的評論。' },
+  priority_tasks: {
+    emptyText: 'AI 正在整理守護任務。',
+    partialEmptyText: '速查版暫提供重點摘要，完整守護任務補齊中。',
+  },
+  collection_steps: {
+    emptyText: '補件清單整理中，稍後指引你補齊缺漏。',
+    partialEmptyText: '補件步驟尚在生成，稍後會同步最新指引。',
+  },
+  repair_checklist: {
+    emptyText: '目前沒有需要立即補救的評論。',
+    partialEmptyText: '風險評論清單整理中，完成後會第一時間提醒你。',
+  },
 };
 
 const els = {
@@ -103,6 +127,8 @@ const els = {
   resultWarningText: document.getElementById('result-warning-text'),
   resultPartial: document.getElementById('result-partial'),
   resultPartialText: document.getElementById('result-partial-text'),
+  partialOverview: document.getElementById('partial-overview'),
+  partialOverviewList: document.getElementById('partial-overview-list'),
   ctaSecondary: document.getElementById('cta-secondary'),
   ctaReport: document.getElementById('cta-report'),
   ctaPlan: document.getElementById('cta-plan'),
@@ -146,6 +172,8 @@ const state = {
   reportUrlOverride: '',
   isPartialResult: false,
   defaultReportCtaText: (els.ctaReport && els.ctaReport.textContent) || '查看預審報表',
+  partialCards: [],
+  partialNotice: '',
 };
 
 const externalLogEvent =
@@ -445,7 +473,9 @@ function normalizeTaskItem(item) {
   }
   const title = item.title || item.name || item.label || item.summary || '';
   const detail = item.detail || item.description || item.note || item.hint || '';
-  return { title, detail, actionUrl: item.url || item.link || item.action_url };
+  const placeholder = Boolean(item.placeholder || item.is_placeholder || item.isPlaceholder);
+  const actionUrl = item.url || item.link || item.action_url;
+  return { title, detail, actionUrl, placeholder };
 }
 
 function renderTasks(tasks = {}) {
@@ -465,7 +495,8 @@ function renderTasks(tasks = {}) {
       listEl.innerHTML = '';
       if (!items.length) {
         if (emptyEl) {
-          emptyEl.textContent = config.emptyText;
+          const emptyMessage = state.isPartialResult ? config.partialEmptyText || config.emptyText : config.emptyText;
+          emptyEl.textContent = emptyMessage;
           emptyEl.hidden = false;
         }
         return;
@@ -477,6 +508,9 @@ function renderTasks(tasks = {}) {
         const normalized = normalizeTaskItem(rawItem);
         if (!normalized || !normalized.title) return;
         const li = document.createElement('li');
+        if (normalized.placeholder) {
+          li.classList.add('task-item--placeholder');
+        }
         if (normalized.detail) {
           const titleEl = document.createElement('strong');
           titleEl.textContent = normalized.title;
@@ -487,7 +521,7 @@ function renderTasks(tasks = {}) {
         } else {
           li.textContent = normalized.title;
         }
-        if (normalized.actionUrl) {
+        if (normalized.actionUrl && !normalized.placeholder) {
           const link = document.createElement('a');
           link.href = normalized.actionUrl;
           link.target = '_blank';
@@ -504,18 +538,256 @@ function renderTasks(tasks = {}) {
 
 function updateResultWarning(warnings = []) {
   if (!els.resultWarning || !els.resultWarningText) return;
-  if (!warnings || !warnings.length) {
+  const messages = extractWarningMessages(warnings);
+  if (!messages.length) {
     els.resultWarning.hidden = true;
     els.resultWarningText.textContent = '';
     return;
   }
   els.resultWarning.hidden = false;
-  els.resultWarningText.textContent = warnings.join('、');
+  els.resultWarningText.textContent = messages.join('、');
 }
 
-function setPartialResultMode(enabled) {
+function normalizeWarningEntry(entry, index = 0) {
+  if (entry == null) return null;
+  if (typeof entry === 'string') {
+    const text = entry.trim();
+    if (!text) return null;
+    return {
+      text,
+      code: text.toLowerCase().replace(/\s+/g, '_'),
+      index,
+    };
+  }
+  if (typeof entry === 'object') {
+    const text = String(
+      entry.text
+        || entry.message
+        || entry.description
+        || entry.detail
+        || entry.note
+        || entry.title
+        || '',
+    ).trim();
+    const code = String(entry.code || entry.id || entry.type || '').trim().toLowerCase();
+    if (!text && !code) return null;
+    return {
+      ...entry,
+      text: text || code || '',
+      code,
+      index,
+    };
+  }
+  return null;
+}
+
+function ensureWarningObjects(warnings = []) {
+  if (!warnings) return [];
+  const source = Array.isArray(warnings) ? warnings : [warnings];
+  const normalized = [];
+  source.forEach((entry, idx) => {
+    if (entry && typeof entry === 'object' && 'text' in entry) {
+      const text = String(entry.text || '').trim();
+      const code = entry.code ? String(entry.code).trim().toLowerCase() : '';
+      if (text || code) {
+        normalized.push({ ...entry, text, code, index: idx });
+      }
+      return;
+    }
+    const normalizedEntry = normalizeWarningEntry(entry, idx);
+    if (normalizedEntry) {
+      normalized.push(normalizedEntry);
+    }
+  });
+  const dedup = new Map();
+  normalized.forEach((item) => {
+    const key = `${item.code || ''}|${item.text || ''}`;
+    if (!dedup.has(key)) {
+      dedup.set(key, item);
+    }
+  });
+  return Array.from(dedup.values());
+}
+
+function extractWarningMessages(warnings = []) {
+  return ensureWarningObjects(warnings)
+    .map((entry) => {
+      if (entry.text) return entry.text;
+      const code = (entry.code || '').toLowerCase();
+      if (code.includes('fallback')) {
+        return '部分欄位以 Live fallback 顯示，資料補齊中。';
+      }
+      return '';
+    })
+    .filter(Boolean);
+}
+
+function hasLiveFallbackWarning(warnings = []) {
+  return ensureWarningObjects(warnings).some((entry) => {
+    const code = (entry.code || '').toLowerCase();
+    const text = (entry.text || '').toLowerCase();
+    return code.includes('fallback') || text.includes('live fallback') || text.includes('fallback');
+  });
+}
+
+function normalizePartialCards(input) {
+  if (!input) return [];
+  const rawList = [];
+  if (Array.isArray(input)) {
+    rawList.push(...input);
+  } else if (typeof input === 'object') {
+    if (Array.isArray(input.items)) {
+      rawList.push(...input.items);
+    }
+    Object.entries(input).forEach(([key, value]) => {
+      if (key === 'items') return;
+      if (Array.isArray(value)) {
+        rawList.push(...value);
+        return;
+      }
+      if (value && typeof value === 'object') {
+        rawList.push({ id: value.id || key, ...value });
+      } else {
+        rawList.push({ id: key, title: String(value) });
+      }
+    });
+  } else if (typeof input === 'string') {
+    rawList.push({ title: input });
+  }
+
+  const normalized = [];
+  rawList.forEach((item, index) => {
+    if (item == null) return;
+    if (typeof item === 'string') {
+      const text = item.trim();
+      if (!text) return;
+      normalized.push({
+        id: `card_${index}`,
+        title: text,
+        description: '',
+      });
+      return;
+    }
+    const title = item.title || item.heading || item.name || '';
+    const description = item.description || item.detail || item.text || item.body || '';
+    const icon = item.icon || item.emoji || '';
+    const badge = item.badge || item.tag || '';
+    const items = Array.isArray(item.items)
+      ? item.items
+          .map((entry) => {
+            if (typeof entry === 'string') return entry;
+            if (entry && typeof entry === 'object') {
+              return entry.title || entry.text || entry.description || entry.detail || '';
+            }
+            return '';
+          })
+          .filter(Boolean)
+      : [];
+    if (!title && !description && !items.length) return;
+    normalized.push({
+      id: item.id || item.key || `card_${index}`,
+      title: title || '進度說明',
+      description,
+      icon,
+      badge,
+      items,
+    });
+  });
+
+  const dedup = new Map();
+  normalized.forEach((card) => {
+    const key = card.id || card.title;
+    if (!dedup.has(key)) {
+      dedup.set(key, card);
+    }
+  });
+  return Array.from(dedup.values());
+}
+
+function renderPartialOverview(cards = []) {
+  if (!els.partialOverview || !els.partialOverviewList) return;
+  if (!state.isPartialResult) {
+    els.partialOverview.hidden = true;
+    els.partialOverviewList.innerHTML = '';
+    return;
+  }
+
+  const normalized = normalizePartialCards(cards);
+  const dataset = normalized.length ? normalized : DEFAULT_PARTIAL_CARDS;
+
+  els.partialOverview.hidden = false;
+  els.partialOverviewList.innerHTML = '';
+
+  dataset.forEach((card) => {
+    if (!card || typeof card !== 'object') return;
+    const article = document.createElement('article');
+    article.className = 'partial-card';
+    if (card.icon) {
+      const iconEl = document.createElement('div');
+      iconEl.className = 'partial-card__icon';
+      iconEl.textContent = card.icon;
+      article.appendChild(iconEl);
+    }
+
+    const bodyEl = document.createElement('div');
+    bodyEl.className = 'partial-card__body';
+
+    const titleEl = document.createElement('h4');
+    titleEl.textContent = card.title || '進度說明';
+    bodyEl.appendChild(titleEl);
+
+    if (card.badge) {
+      const badgeEl = document.createElement('span');
+      badgeEl.className = 'partial-card__badge';
+      badgeEl.textContent = card.badge;
+      bodyEl.appendChild(badgeEl);
+    }
+
+    if (card.description) {
+      const descEl = document.createElement('p');
+      descEl.textContent = card.description;
+      bodyEl.appendChild(descEl);
+    }
+
+    if (Array.isArray(card.items) && card.items.length) {
+      const listEl = document.createElement('ul');
+      listEl.className = 'partial-card__list';
+      card.items.forEach((itemText) => {
+        const text = String(itemText || '').trim();
+        if (!text) return;
+        const li = document.createElement('li');
+        li.textContent = text;
+        listEl.appendChild(li);
+      });
+      if (listEl.children.length) {
+        bodyEl.appendChild(listEl);
+      }
+    }
+
+    article.appendChild(bodyEl);
+    els.partialOverviewList.appendChild(article);
+  });
+}
+
+function setPartialResultMode(enabled, context = {}) {
+  const warnings = context.warnings || state.warnings;
+  const liveFallback = enabled ? hasLiveFallbackWarning(warnings) : false;
+  const noticeFromContext = context.notice || state.partialNotice || '';
+  const partialNotice = noticeFromContext || (liveFallback ? PARTIAL_LIVE_FALLBACK_TEXT : PARTIAL_NOTICE_TEXT);
+
+  state.isPartialResult = enabled;
+
+  if (enabled) {
+    if (noticeFromContext) {
+      state.partialNotice = noticeFromContext;
+    }
+  } else {
+    state.partialCards = [];
+    state.partialNotice = '';
+  }
+
   if (els.resultPartialText) {
-    els.resultPartialText.textContent = PARTIAL_NOTICE_TEXT;
+    els.resultPartialText.textContent = partialNotice;
   }
 
   if (els.resultPartial) {
@@ -535,7 +807,17 @@ function setPartialResultMode(enabled) {
     }
   }
 
-  state.isPartialResult = enabled;
+  if (enabled) {
+    let cardsToRender = state.partialCards;
+    if (context.partialCards !== undefined) {
+      const normalizedCards = normalizePartialCards(context.partialCards);
+      state.partialCards = normalizedCards;
+      cardsToRender = normalizedCards;
+    }
+    renderPartialOverview(cardsToRender);
+  } else {
+    renderPartialOverview([]);
+  }
 }
 
 function stopTransitionCountdown() {
@@ -843,7 +1125,7 @@ function handleAnalysisCompleted(context = {}) {
     stopPolling();
   }
   setStage('s4');
-  setPartialResultMode(isPartial);
+  setPartialResultMode(isPartial, context);
   updateResultWarning(context.warnings || state.warnings);
   renderMetricsCards(state.metricsRaw);
   renderTasks(state.tasks);
@@ -875,15 +1157,47 @@ function handleStatusResponse(payload) {
   if (!payload || typeof payload !== 'object') return;
   if (payload.lead_id && payload.lead_id !== state.leadId) return;
 
-  if (payload.metrics) {
-    renderMetricsCards(payload.metrics);
+  const metricsPayload = payload.metrics ?? payload.partial_metrics ?? payload.partial?.metrics;
+  if (metricsPayload !== undefined) {
+    renderMetricsCards(metricsPayload);
   }
-  if (payload.tasks) {
-    renderTasks(payload.tasks);
+
+  const tasksPayload = payload.tasks ?? payload.partial_tasks ?? payload.partial?.tasks;
+  if (tasksPayload !== undefined) {
+    renderTasks(tasksPayload || {});
+  } else if (payload.guardian_placeholders) {
+    renderTasks(payload.guardian_placeholders);
   }
-  if (Array.isArray(payload.warnings)) {
-    state.warnings = payload.warnings;
+
+  let warningsExplicit = false;
+  const warningsInput = [];
+  if ('warnings' in payload) {
+    warningsExplicit = true;
+    const value = payload.warnings;
+    if (value != null) {
+      if (Array.isArray(value)) {
+        warningsInput.push(...value);
+      } else {
+        warningsInput.push(value);
+      }
+    }
   }
+  if (payload.partial && typeof payload.partial === 'object' && 'warnings' in payload.partial) {
+    warningsExplicit = true;
+    const value = payload.partial.warnings;
+    if (value != null) {
+      if (Array.isArray(value)) {
+        warningsInput.push(...value);
+      } else {
+        warningsInput.push(value);
+      }
+    }
+  }
+  if (warningsExplicit) {
+    state.warnings = ensureWarningObjects(warningsInput);
+    updateResultWarning(state.warnings);
+  }
+
   if (payload.report_token) {
     state.reportToken = payload.report_token;
   } else if (payload.report?.token) {
@@ -891,6 +1205,24 @@ function handleStatusResponse(payload) {
   }
   if (payload.report_url) {
     state.reportUrlOverride = payload.report_url;
+  }
+
+  const partialCardsCandidate =
+    payload.partial_cards
+    ?? payload.partialCards
+    ?? payload.partial_overview
+    ?? payload.partialOverview
+    ?? payload.partial?.cards
+    ?? payload.partial?.overview;
+  if (partialCardsCandidate !== undefined) {
+    state.partialCards = normalizePartialCards(partialCardsCandidate);
+  }
+
+  const partialNoticeCandidate = payload.partial_notice
+    ?? payload.partialNotice
+    ?? (payload.partial && payload.partial.notice);
+  if (partialNoticeCandidate !== undefined) {
+    state.partialNotice = partialNoticeCandidate ? String(partialNoticeCandidate) : '';
   }
 
   const statusValue = String(payload.status || payload.state || '').toLowerCase();
@@ -916,7 +1248,13 @@ function handleStatusResponse(payload) {
   const isComplete = statusValue === 'ready' || statusValue === 'complete' || stageValue === 'ready' || stageValue === 'complete';
 
   if (isPartial) {
-    handleAnalysisCompleted({ warnings: state.warnings, report_url: payload.report_url, partial: true });
+    handleAnalysisCompleted({
+      warnings: state.warnings,
+      report_url: payload.report_url,
+      partial: true,
+      partialCards: state.partialCards,
+      notice: state.partialNotice,
+    });
     return;
   }
 
