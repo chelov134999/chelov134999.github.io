@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?ts=20251009T1505" />
+  <link rel="stylesheet" href="styles.css?ts=20251011T1514" />
 </head>
 <body>
   <main class="page" id="app">
@@ -111,12 +111,12 @@
         </div>
         <header class="stage-panel__header stage-panel__header--compact">
           <h2>免費檢測進行中</h2>
-          <p class="muted" id="analysis-description">AI 正在同步 Google 評論、商圈可見度與待辦任務。</p>
+          <p class="muted" id="analysis-description">AI 30 秒內生成速查版，完整報告稍後自動更新。</p>
         </header>
 
         <div class="analysis-timer" id="analysis-timer" aria-live="polite" hidden>
           <div class="analysis-timer__clock">
-            <span id="analysis-countdown-number" class="analysis-timer__number">60</span>
+            <span id="analysis-countdown-number" class="analysis-timer__number">30</span>
             <small class="analysis-timer__unit">秒</small>
           </div>
           <p id="analysis-tip" class="analysis-tip">AI 正在建立守護任務清單…</p>
@@ -195,6 +195,19 @@
           <strong>提醒：</strong>
           <span id="result-warning-text"></span>
         </div>
+
+        <div class="result-partial" id="result-partial" hidden>
+          <strong>速查提示：</strong>
+          <span id="result-partial-text">目前是速查版，資料補齊中，完整資料生成後自動更新。</span>
+        </div>
+
+        <section class="partial-insight" id="partial-overview" hidden aria-live="polite">
+          <header class="partial-insight__header">
+            <h3>後台正在進行</h3>
+            <p class="muted">完整報告生成期間，我們會持續補齊守護任務與結構化網站。</p>
+          </header>
+          <div class="partial-insight__grid" id="partial-overview-list"></div>
+        </section>
 
         <div class="metric-board metric-board--result" id="result-metric-board">
           <article class="metric-card" data-metric="review_health" data-stage="result">
@@ -277,7 +290,7 @@
 
         <p class="timeout-note" id="timeout-note">資料較多，我會在完成後發送通知。</p>
         <div class="timeout-actions">
-          <a id="timeout-sample" class="btn btn--primary" href="sample-report.html?ts=20251009T1505" target="_blank" rel="noopener">查看樣本入場券</a>
+          <a id="timeout-sample" class="btn btn--primary" href="sample-report.html?ts=20251011T1514" target="_blank" rel="noopener">查看樣本入場券</a>
           <button id="timeout-weekly" type="button" class="btn btn--outline">先拿守護任務試算</button>
           <button id="timeout-report" type="button" class="btn btn--ghost" hidden>回到完整報表</button>
         </div>
@@ -288,16 +301,16 @@
   </main>
 
   <footer class="footer-link">
-    <a href="about.html?ts=20251009T1505" id="about-link">關於我們</a>
+    <a href="about.html?ts=20251011T1514" id="about-link">關於我們</a>
   </footer>
 
   <div class="toast" id="toast" hidden></div>
 
   <script src="https://static.line-scdn.net/liff/edge/versions/2.21.2/sdk.js"></script>
-  <script src="config.runtime.js?ts=20251009T1505"></script>
-  <script src="config.js?ts=20251009T1505"></script>
-  <script src="report-utils.js?ts=20251009T1505"></script>
-  <script src="analytics.js?ts=20251009T1505"></script>
-  <script src="app.js?ts=20251009T1505"></script>
+  <script src="config.runtime.js?ts=20251011T1514"></script>
+  <script src="config.js?ts=20251011T1514"></script>
+  <script src="report-utils.js?ts=20251011T1514"></script>
+  <script src="analytics.js?ts=20251011T1514"></script>
+  <script src="app.js?ts=20251011T1514"></script>
 </body>
 </html>

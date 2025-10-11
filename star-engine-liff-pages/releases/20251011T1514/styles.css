@@ -553,6 +553,19 @@ body:not(.page--info) {
   background: rgba(29, 78, 216, 0.08);
 }
 
+.task-item--placeholder {
+  background: rgba(148, 163, 184, 0.18);
+  color: rgba(15, 23, 42, 0.72);
+}
+
+.task-card--result .task-item--placeholder {
+  background: rgba(148, 163, 184, 0.22);
+}
+
+.task-item--placeholder strong {
+  color: rgba(15, 23, 42, 0.82);
+}
+
 .task-empty {
   margin: 0;
   font-size: 0.85rem;
@@ -1254,6 +1267,111 @@ body:not(.page--info) {
 
 .result-warning strong {
   font-weight: 700;
+}
+
+.result-partial {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(59, 130, 246, 0.32);
+  background: rgba(59, 130, 246, 0.12);
+  color: #0f1b3d;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.result-partial strong {
+  font-weight: 700;
+}
+
+.partial-insight {
+  margin-top: clamp(20px, 4vw, 32px);
+  padding: clamp(20px, 4vw, 28px);
+  border-radius: 28px;
+  border: 1px solid rgba(59, 130, 246, 0.18);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.04) 100%);
+  display: grid;
+  gap: clamp(16px, 3vw, 22px);
+}
+
+.partial-insight__header {
+  display: grid;
+  gap: 6px;
+}
+
+.partial-insight__header h3 {
+  margin: 0;
+  font-size: clamp(1.08rem, 2.4vw, 1.32rem);
+  color: var(--text);
+}
+
+.partial-insight__header p {
+  margin: 0;
+  color: rgba(15, 23, 42, 0.72);
+}
+
+.partial-insight__grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.partial-card {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  padding: 18px 20px;
+  border-radius: 22px;
+  border: 1px solid rgba(59, 130, 246, 0.12);
+  background-color: #fff;
+  box-shadow: var(--shadow-card);
+}
+
+.partial-card__icon {
+  font-size: 1.4rem;
+}
+
+.partial-card__body {
+  display: grid;
+  gap: 8px;
+}
+
+.partial-card__body h4 {
+  margin: 0;
+  font-size: 1.08rem;
+  color: var(--text);
+}
+
+.partial-card__body p {
+  margin: 0;
+  color: rgba(15, 23, 42, 0.72);
+  line-height: 1.5;
+}
+
+.partial-card__badge {
+  align-self: start;
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: rgba(59, 130, 246, 0.12);
+  color: #1d4ed8;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.partial-card__list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  color: rgba(15, 23, 42, 0.78);
+}
+
+.partial-card__list li {
+  line-height: 1.4;
 }
 
 .result-card:hover {

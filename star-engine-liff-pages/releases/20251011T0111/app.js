@@ -145,13 +145,15 @@ const state = {
   stage: 's0',
   liffReady: false,
   userId: '',
-  submitLocked: false,
   leadId: params.get('lead_id') || '',
   reportToken: params.get('token') || '',
   metricsMap: {},
   metricsRaw: null,
   metricsList: [],
   metricTimestamps: {},
+  pollTimer: null,
+  pollDebounceId: null,
+  submitLocked: false,
   tasks: {
     priority_tasks: [],
     collection_steps: [],
@@ -174,9 +176,14 @@ const state = {
   partialNotice: '',
 };
 
+const externalLogEvent =
+  typeof window !== 'undefined' && typeof window.logEvent === 'function'
+    ? window.logEvent.bind(window)
+    : null;
+
 function logEvent(...args) {
-  if (typeof window.logEvent === 'function') {
-    window.logEvent(...args);
+  if (externalLogEvent) {
+    externalLogEvent(...args);
   }
 }
 
@@ -859,7 +866,7 @@ function stopAnalysisCountdown() {
   state.analysisRemaining = 0;
   state.analysisTipIndex = 0;
   if (els.analysisTimer) {
-    els.analysisTimer.hidden = true;
+    els.analysisTimer.hidden = false;
   }
 }
 
@@ -893,10 +900,10 @@ function startAnalysisCountdown() {
     state.analysisRemaining = Math.ceil(remainingMs / 1000);
     updateAnalysisCountdown();
     if (remainingMs <= 0) {
+      state.analysisRemaining = 0;
+      updateAnalysisCountdown();
       stopAnalysisCountdown();
-      if (state.stage !== 's4' && state.stage !== 's5') {
-        triggerTimeout({ reason: 'countdown_expired' });
-      }
+      state.analysisCountdownFrameId = null;
       return;
     }
     state.analysisCountdownFrameId = requestAnimationFrame(tick);
@@ -909,10 +916,9 @@ function startAnalysisCountdown() {
       state.analysisRemaining -= 1;
       updateAnalysisCountdown();
       if (state.analysisRemaining <= 0) {
+        state.analysisRemaining = 0;
+        updateAnalysisCountdown();
         stopAnalysisCountdown();
-        if (state.stage !== 's4' && state.stage !== 's5') {
-          triggerTimeout({ reason: 'countdown_expired' });
-        }
       }
     }, 1000);
   }
@@ -925,9 +931,13 @@ function startAnalysisCountdown() {
 }
 
 function clearPollingInterval() {
-  if (state.pollId) {
-    clearInterval(state.pollId);
-    state.pollId = null;
+  if (state.pollTimer !== null) {
+    clearTimeout(state.pollTimer);
+  }
+  state.pollTimer = null;
+  if (state.pollDebounceId) {
+    clearTimeout(state.pollDebounceId);
+    state.pollDebounceId = null;
   }
 }
 
@@ -950,14 +960,24 @@ function startPolling() {
     try {
       const url = new URL(endpoints.analysisStatus);
       url.searchParams.set('lead_id', state.leadId);
+      url.searchParams.set('_', Date.now().toString());
       const payload = await requestJSON(url.toString(), { method: 'GET' });
       handleStatusResponse(payload);
     } catch (error) {
       console.warn('[analysis-status]', error.message || error);
+    } finally {
+      if (state.pollTimer !== null) {
+        clearTimeout(state.pollTimer);
+        state.pollTimer = setTimeout(poll, POLL_INTERVAL_MS);
+      }
     }
   };
+  state.pollTimer = setTimeout(() => {}, 0); // kick off timer chain
+  if (state.pollDebounceId) {
+    clearTimeout(state.pollDebounceId);
+    state.pollDebounceId = null;
+  }
   poll();
-  state.pollId = setInterval(poll, POLL_INTERVAL_MS);
   state.timeoutId = setTimeout(() => {
     if (state.stage !== 's4' && state.stage !== 's5') {
       triggerTimeout({ reason: 'timeout' });
@@ -1018,10 +1038,6 @@ async function requestJSON(url, options = {}) {
 async function handleLeadSubmit(event) {
   event.preventDefault();
   if (!els.leadForm?.reportValidity?.()) return;
-  if (state.submitLocked) {
-    showToast('AI 正在處理上一筆檢測，請稍候…');
-    return;
-  }
 
   const formData = new FormData(els.leadForm);
   const city = (formData.get('city') || '').trim();
@@ -1034,7 +1050,10 @@ async function handleLeadSubmit(event) {
     return;
   }
 
-  state.submitLocked = true;
+  if (state.submitLocked) {
+    showToast('AI 正在檢測中，請稍候完成結果。');
+    return;
+  }
 
   const leadId = generateLeadId();
   const payload = {
@@ -1063,6 +1082,7 @@ async function handleLeadSubmit(event) {
   setStage('s1');
   startTransitionCountdown();
   startPolling();
+  state.submitLocked = true;
 
   if (els.submitBtn) {
     els.submitBtn.disabled = true;
@@ -1079,13 +1099,9 @@ async function handleLeadSubmit(event) {
     console.error('[lead] submit failed', error);
     showToast(`送出失敗：${error.message}`);
     stopPolling();
-    setStage('s0');
     state.submitLocked = false;
   } finally {
-    if (els.submitBtn) {
-      els.submitBtn.disabled = false;
-      els.submitBtn.textContent = '申請 AI 入場券';
-    }
+    // 持續鎖定按鈕，待流程完成或超時時再釋放
   }
 }
 
@@ -1119,10 +1135,10 @@ function handleAnalysisCompleted(context = {}) {
 }
 
 function triggerTimeout(context = {}) {
-  state.submitLocked = false;
   clearAnalysisTimeout();
   setStage('s5');
   setPartialResultMode(false);
+  state.submitLocked = false;
   const note = context.note || STATUS_HINTS.timeout;
   if (els.timeoutNote) {
     els.timeoutNote.textContent = note;
@@ -1228,7 +1244,7 @@ function handleStatusResponse(payload) {
     return;
   }
 
-  const isPartial = statusValue === 'partial' || statusValue === 'ready_partial' || stageValue === 'ready_partial' || stageValue === 'partial';
+  const isPartial = statusValue === 'partial' || statusValue === 'ready_partial' || stageValue === 'partial' || stageValue === 'ready_partial';
   const isComplete = statusValue === 'ready' || statusValue === 'complete' || stageValue === 'ready' || stageValue === 'complete';
 
   if (isPartial) {
@@ -1313,6 +1329,7 @@ function openReport(customUrl) {
 
 function returnHome() {
   window.location.href = formUrl;
+  state.submitLocked = false;
 }
 
 async function initLiff() {
