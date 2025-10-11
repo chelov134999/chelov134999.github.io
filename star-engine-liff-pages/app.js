@@ -168,6 +168,8 @@ const state = {
   analysisCountdownFrameId: null,
   analysisRemaining: ANALYSIS_COUNTDOWN_SECONDS,
   analysisTipIndex: 0,
+  analysisCountdownActive: false,
+  analysisCountdownCompleted: false,
   warnings: [],
   reportUrlOverride: '',
   isPartialResult: false,
@@ -870,6 +872,7 @@ function stopAnalysisCountdown() {
   }
   state.analysisRemaining = 0;
   state.analysisTipIndex = 0;
+  state.analysisCountdownActive = false;
   if (els.analysisTimer) {
     els.analysisTimer.hidden = false;
   }
@@ -891,6 +894,8 @@ function startAnalysisCountdown() {
   stopAnalysisCountdown();
   state.analysisRemaining = ANALYSIS_COUNTDOWN_SECONDS;
   state.analysisTipIndex = 0;
+  state.analysisCountdownActive = true;
+  state.analysisCountdownCompleted = false;
   const deadline = Date.now() + (ANALYSIS_COUNTDOWN_SECONDS * 1000);
   if (els.analysisTimer) {
     els.analysisTimer.hidden = false;
@@ -908,6 +913,8 @@ function startAnalysisCountdown() {
       state.analysisRemaining = 0;
       updateAnalysisCountdown();
       stopAnalysisCountdown();
+      state.analysisCountdownActive = false;
+      state.analysisCountdownCompleted = true;
       state.analysisCountdownFrameId = null;
       return;
     }
@@ -924,6 +931,8 @@ function startAnalysisCountdown() {
         state.analysisRemaining = 0;
         updateAnalysisCountdown();
         stopAnalysisCountdown();
+        state.analysisCountdownActive = false;
+        state.analysisCountdownCompleted = true;
       }
     }, 1000);
   }
@@ -1005,6 +1014,7 @@ function setStage(nextStage) {
     startAnalysisCountdown();
   } else if (previousStage === 's2') {
     stopAnalysisCountdown();
+    state.analysisCountdownCompleted = false;
   }
 
   if (nextStage !== 's1') {
@@ -1080,6 +1090,8 @@ async function handleLeadSubmit(event) {
   state.metricsRaw = null;
   state.metricsList = [];
   state.metricTimestamps = {};
+  state.analysisCountdownActive = false;
+  state.analysisCountdownCompleted = false;
   setPartialResultMode(false);
   renderMetricsCards([]);
   renderTasks({});
@@ -1237,7 +1249,7 @@ function handleStatusResponse(payload) {
   if (shouldActivateAnalysis) {
     if (state.stage !== 's2') {
       setStage('s2');
-    } else if (!state.analysisCountdownId && !state.analysisCountdownFrameId) {
+    } else if (!state.analysisCountdownActive && !state.analysisCountdownCompleted) {
       startAnalysisCountdown();
     }
   }
