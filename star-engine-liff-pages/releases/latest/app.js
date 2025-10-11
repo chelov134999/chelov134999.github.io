@@ -1237,7 +1237,7 @@ function handleStatusResponse(payload) {
   if (shouldActivateAnalysis) {
     if (state.stage !== 's2') {
       setStage('s2');
-    } else if (!state.analysisCountdownId) {
+    } else if (!state.analysisCountdownId && !state.analysisCountdownFrameId) {
       startAnalysisCountdown();
     }
   }
