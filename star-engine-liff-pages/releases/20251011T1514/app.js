@@ -178,14 +178,12 @@ const state = {
 
 const originalLogEvent =
   typeof window !== 'undefined' && typeof window.logEvent === 'function'
-    ? window.logEvent
+    ? window.logEvent.bind(window)
     : null;
 
-const externalLogEvent = originalLogEvent ? originalLogEvent.bind(window) : null;
-
 function logEvent(...args) {
-  if (externalLogEvent && originalLogEvent !== logEvent) {
-    externalLogEvent(...args);
+  if (originalLogEvent && originalLogEvent !== logEvent) {
+    originalLogEvent(...args);
   }
 }
 

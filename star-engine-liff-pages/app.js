@@ -181,11 +181,14 @@ const originalLogEvent =
     ? window.logEvent
     : null;
 
-const externalLogEvent = originalLogEvent ? originalLogEvent.bind(window) : null;
-
 function logEvent(...args) {
-  if (externalLogEvent && originalLogEvent !== logEvent) {
-    externalLogEvent(...args);
+  if (typeof window === 'undefined') return;
+  const candidate =
+    typeof window.logEvent === 'function' && window.logEvent !== logEvent
+      ? window.logEvent
+      : originalLogEvent;
+  if (typeof candidate === 'function' && candidate !== logEvent) {
+    candidate.apply(window, args);
   }
 }
 
