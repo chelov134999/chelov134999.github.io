@@ -50,12 +50,12 @@ const copyPairs = [
   ['plans.html', path.join('releases', timestamp, 'plans.html')],
   ['sample-report.html', path.join('releases', timestamp, 'sample-report.html')],
   ['report.html', path.join('releases', timestamp, 'report.html')],
+  ['app.js', path.join('releases', timestamp, 'app.js')],
+  ['analytics.js', path.join('releases', timestamp, 'analytics.js')],
+  ['logo.png', path.join('releases', timestamp, 'logo.png')],
+  ['cognos-avatar.svg', path.join('releases', timestamp, 'cognos-avatar.svg')],
   ['config.js', path.join('releases', timestamp, 'config.js')],
   ['config.runtime.js', path.join('releases', timestamp, 'config.runtime.js')],
-  ['analytics.js', path.join('releases', timestamp, 'analytics.js')],
-  ['app.js', path.join('releases', timestamp, 'app.js')],
-  ['cognos-avatar.svg', path.join('releases', timestamp, 'cognos-avatar.svg')],
-  ['logo.png', path.join('releases', timestamp, 'logo.png')],
   ['report.js', path.join('releases', timestamp, 'report.js')],
   ['report-utils.js', path.join('releases', timestamp, 'report-utils.js')],
   ['styles.css', path.join('releases', timestamp, 'styles.css')],
@@ -94,31 +94,6 @@ copyPairs.forEach(([source, dest]) => {
   fs.copyFileSync(srcPath, destPath);
 });
 
-const replaceInFile = (filePath, replacements) => {
-  if (!fs.existsSync(filePath)) {
-    return false;
-  }
-  let content = fs.readFileSync(filePath, 'utf8');
-  let mutated = content;
-  replacements.forEach(([pattern, value]) => {
-    mutated = mutated.replace(pattern, value);
-  });
-  if (mutated !== content) {
-    fs.writeFileSync(filePath, mutated);
-    return true;
-  }
-  return false;
-};
-
-const releaseConfigTargets = [
-  path.join(releaseDir, 'config.js'),
-  path.join(releaseDir, 'config.runtime.js'),
-];
-
-releaseConfigTargets.forEach((target) => {
-  replaceInFile(target, [[/releases\/latest/g, `releases/${timestamp}`]]);
-});
-
 const latestDir = path.join(releasesRoot, 'latest');
 try {
   fs.rmSync(latestDir, { recursive: true, force: true });
@@ -127,15 +102,6 @@ try {
 } catch (error) {
   console.warn(`[update_timestamp] 更新 latest 快照時發生錯誤：${error.message || error}`);
 }
-
-const latestConfigTargets = [
-  path.join(latestDir, 'config.js'),
-  path.join(latestDir, 'config.runtime.js'),
-];
-
-latestConfigTargets.forEach((target) => {
-  replaceInFile(target, [[/releases\/20\d{6}T\d{4}/g, 'releases/latest']]);
-});
 
 const releaseDirs = fs
   .readdirSync(releasesRoot, { withFileTypes: true })
